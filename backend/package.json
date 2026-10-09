@@ -1,0 +1,27 @@
+{
+  "name": "dawn-api",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --env-file-if-exists=.env --watch src/server.js",
+    "start": "node --env-file-if-exists=.env src/server.js",
+    "worker": "node --env-file-if-exists=.env src/worker.js",
+    "test": "node --test test/*.test.js",
+    "test:integration": "node --test test/*.test.mjs"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.0.0",
+    "helmet": "^8.1.0",
+    "mongodb": "^6.17.0",
+    "multer": "^2.0.2",
+    "openai": "^6.0.0",
+    "pdf-parse": "^2.4.0",
+    "saxes": "^6.0.0",
+    "yauzl": "^3.2.0",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "mongodb-memory-server": "^11.3.0"
+  }
+}

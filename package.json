@@ -1,0 +1,16 @@
+{
+  "name": "dawn-ecosystem",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "npm --prefix frontend/dawn_admin run dev",
+    "server": "npm --prefix backend run dev",
+    "worker": "npm --prefix backend run worker",
+    "build": "npm --prefix frontend/dawn_admin run build",
+    "test": "npm --prefix backend test",
+    "lint": "npm --prefix frontend/dawn_admin run lint"
+  },
+  "devDependencies": {
+    "prettier": "^3.9.9"
+  }
+}

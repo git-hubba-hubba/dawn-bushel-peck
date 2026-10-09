@@ -1,0 +1,74 @@
+:root {
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  --dawn-background: #101c20;
+  --dawn-surface: #1c2a2d;
+  --dawn-raised: #26373a;
+  --dawn-inset: #142226;
+  --dawn-border: #3d504d;
+  --dawn-text: #f6f1e6;
+  --dawn-muted: #b2c0b7;
+  --dawn-gold: #f4ce94;
+  --dawn-sage: #bad2c7;
+  --dawn-ink: #182623;
+  --dawn-error: #ffb2a6;
+  --dawn-error-surface: #382929;
+  color-scheme: dark;
+  color: var(--dawn-text);
+  background: var(--dawn-background);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  font-weight: 400;
+  font-size: 14px;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+}
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+button,
+a,
+input,
+textarea,
+select {
+  outline-offset: 4px;
+}
+button {
+  cursor: pointer;
+}
+button:disabled {
+  cursor: not-allowed;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+button {
+  color: inherit;
+}
+::selection {
+  background: var(--dawn-gold);
+  color: var(--dawn-ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--dawn-gold);
+}
