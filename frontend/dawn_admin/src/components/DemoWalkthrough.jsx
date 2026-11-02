@@ -106,6 +106,7 @@ function AgentFlow({ model, completed, active, playing }) {
 
 export function DemoWalkthrough({
   step,
+  sceneVersion,
   model,
   completed,
   active,
@@ -135,7 +136,7 @@ export function DemoWalkthrough({
         <span>dawn / an idea in motion</span>
         <span className="tour-example-badge">ILLUSTRATIVE DEMO</span>
       </div>
-      <div className="tour-scene" key={step}>
+      <div className="tour-scene" key={`${step}-${sceneVersion}`}>
         <div className="tour-scene-label">
           <span className="eyebrow">{label}</span>
           <span>0{step + 1} / 04</span>

@@ -1,4 +1,5 @@
 import express from "express";
+import { serveFrontend } from "./services/frontend.js";
 import { accountRoutes } from "./routes/accounts.js";
 import helmet from "helmet";
 import { rateLimit } from "express-rate-limit";
@@ -17,6 +18,7 @@ export function createApp({ db, client, config }) {
   const app = express(),
     verify = passwordVerifier(config.password);
   app.disable("x-powered-by");
+  app.set("trust proxy", config.trustProxyHops || false);
   app.use(helmet(), express.json({ limit: "400kb" }), originMiddleware(config));
   app.use(
     "/api",
@@ -60,6 +62,7 @@ export function createApp({ db, client, config }) {
     res.clearCookie("dawn_session", cookieOptions(config)).status(204).end();
   });
   app.use("/api", authMiddleware(db), apiRoutes(db, config, client));
+  if (config.production) serveFrontend(app);
   app.use((req, res) => res.status(404).json({ error: "Endpoint not found." }));
   app.use((error, req, res, next) => {
     if (res.headersSent) return next(error);

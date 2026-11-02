@@ -18,7 +18,9 @@ export function DemoTutorial({ onExit }) {
     [playing, setPlaying] = useState(false),
     [tourPlaying, setTourPlaying] = useState(false),
     [tourStarted, setTourStarted] = useState(false),
-    [elapsed, setElapsed] = useState(0);
+    [elapsed, setElapsed] = useState(0),
+    [detailsOpen, setDetailsOpen] = useState(true),
+    [sceneVersion, setSceneVersion] = useState(0);
   const elapsedRef = useRef(0);
   const updateElapsed = useCallback((value) => {
     elapsedRef.current = value;
@@ -56,6 +58,11 @@ export function DemoTutorial({ onExit }) {
     const timer = setInterval(() => {
       const nextElapsed = elapsedRef.current + 250;
       if (nextElapsed >= duration) {
+        // Pausing can interrupt a wave; let every dependency finish before leaving.
+        if (step === 2 && completed.length < model.nodes.length) {
+          updateElapsed(duration - 250);
+          return;
+        }
         clearInterval(timer);
         if (step === 3) {
           setTourPlaying(false);
@@ -70,7 +77,14 @@ export function DemoTutorial({ onExit }) {
       } else updateElapsed(nextElapsed);
     }, 250);
     return () => clearInterval(timer);
-  }, [tourPlaying, duration, step, updateElapsed]);
+  }, [
+    tourPlaying,
+    duration,
+    step,
+    updateElapsed,
+    completed.length,
+    model.nodes.length,
+  ]);
   useEffect(() => {
     function pauseWhenHidden() {
       if (document.hidden) {
@@ -87,10 +101,12 @@ export function DemoTutorial({ onExit }) {
     setTourStarted(false);
     setPlaying(false);
     updateElapsed(0);
+    setDetailsOpen(true);
     setStep(next);
   }
   function startTour(restart = false) {
     if (restart || (step === 3 && elapsed >= duration)) {
+      setSceneVersion((version) => version + 1);
       setStep(0);
       setCompleted([]);
       updateElapsed(0);
@@ -102,6 +118,7 @@ export function DemoTutorial({ onExit }) {
       }
       setPlaying(true);
     }
+    setDetailsOpen(false);
     setTourStarted(true);
     setTourPlaying(true);
     if (!tourStarted || restart)
@@ -164,6 +181,7 @@ export function DemoTutorial({ onExit }) {
         </nav>
         <DemoWalkthrough
           step={step}
+          sceneVersion={sceneVersion}
           model={model}
           completed={completed}
           active={active}
@@ -181,9 +199,20 @@ export function DemoTutorial({ onExit }) {
           }}
           onRestart={() => startTour(true)}
         />
-        <details className="demo-chapter-details" open={!tourStarted}>
+        <details
+          className="demo-chapter-details"
+          open={detailsOpen}
+          onToggle={(event) => {
+            const open = event.currentTarget.open;
+            setDetailsOpen(open);
+            if (open && tourStarted) {
+              setTourPlaying(false);
+              setPlaying(false);
+            }
+          }}
+        >
           <summary>Explore this chapter in detail</summary>
-          {step === 0 && (
+          {detailsOpen && step === 0 && (
             <section className="panel demo-panel">
               <span className="eyebrow">UPLOAD OR WRITE → SAVE</span>
               <h2>{demoWorkflow.name}</h2>
@@ -206,7 +235,7 @@ export function DemoTutorial({ onExit }) {
               </p>
             </section>
           )}
-          {step === 1 && (
+          {detailsOpen && step === 1 && (
             <section className="panel demo-panel">
               <span className="eyebrow">SEVEN DISTINCT EXECUTION PATTERNS</span>
               <h2>Choose how this workflow moves</h2>
@@ -253,7 +282,7 @@ export function DemoTutorial({ onExit }) {
               </p>
             </section>
           )}
-          {step === 2 && (
+          {detailsOpen && step === 2 && (
             <section className="panel demo-panel">
               <span className="eyebrow">ILLUSTRATIVE AGENT REPLAY</span>
               <h2>{model.name}: follow every handoff</h2>
@@ -336,7 +365,7 @@ export function DemoTutorial({ onExit }) {
               </div>
             </section>
           )}
-          {step === 3 && <DemoResults onExit={onExit} />}
+          {detailsOpen && step === 3 && <DemoResults onExit={onExit} />}
         </details>
         <div className="demo-controls demo-navigation">
           <button

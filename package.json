@@ -8,7 +8,9 @@
     "worker": "npm --prefix backend run worker",
     "build": "npm --prefix frontend/dawn_admin run build",
     "test": "npm --prefix backend test",
-    "lint": "npm --prefix frontend/dawn_admin run lint"
+    "lint": "npm --prefix frontend/dawn_admin run lint",
+    "start": "npm --prefix backend start",
+    "build:render": "npm ci --prefix backend --omit=dev && npm ci --prefix frontend/dawn_admin --include=dev && npm run build"
   },
   "devDependencies": {
     "prettier": "^3.9.9"
