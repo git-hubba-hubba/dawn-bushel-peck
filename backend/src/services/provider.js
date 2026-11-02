@@ -1,5 +1,7 @@
 import OpenAI from "openai";
 import {
+  recommendationSchema,
+  recommendationJsonSchema,
   reportSchema,
   evaluationSchema,
   outputJsonSchema,
@@ -15,9 +17,15 @@ export function createProvider(config) {
     instructions,
     input,
     evaluate = false,
+    recommend = false,
+    evidenceIds,
     signal,
     onProgress,
   }) => {
+    const assessmentSchema = structuredClone(recommendationJsonSchema);
+    if (evidenceIds?.length)
+      assessmentSchema.properties.recommendations.items.properties.evidence.items.enum =
+        evidenceIds;
     const stream = client.responses.stream(
       {
         model: evaluate ? config.evaluator : config.model,
@@ -29,9 +37,17 @@ export function createProvider(config) {
         text: {
           format: {
             type: "json_schema",
-            name: evaluate ? "evaluation" : "agent_report",
+            name: recommend
+              ? "structure_recommendations"
+              : evaluate
+                ? "evaluation"
+                : "agent_report",
             strict: true,
-            schema: evaluate ? evaluationJsonSchema : outputJsonSchema,
+            schema: recommend
+              ? assessmentSchema
+              : evaluate
+                ? evaluationJsonSchema
+                : outputJsonSchema,
           },
         },
       },
@@ -50,10 +66,24 @@ export function createProvider(config) {
     }
     const result = await stream.finalResponse();
     if (result.status !== "completed" || !result.output_text)
-      throw new Error("Provider did not complete a structured response.");
-    const output = (evaluate ? evaluationSchema : reportSchema).parse(
-      JSON.parse(result.output_text),
-    );
+      throw Object.assign(
+        new Error("Provider did not complete a structured response."),
+        { code: "incomplete_response" },
+      );
+    let output;
+    try {
+      output = (
+        recommend
+          ? recommendationSchema
+          : evaluate
+            ? evaluationSchema
+            : reportSchema
+      ).parse(JSON.parse(result.output_text));
+    } catch {
+      throw Object.assign(new Error("Provider output failed validation."), {
+        code: "invalid_output",
+      });
+    }
     return {
       output,
       usage: {

@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
+import { ComparisonPriorities } from "./ComparisonPriorities";
 import { structureById } from "../../../../shared/structures";
+import { StructureResult, ResultMetrics } from "./Results";
 import { api } from "../hooks/useWorkspace";
 export function Analytics({ workspace, weights, setWeights, projectId }) {
   const [result, setResult] = useState(null),
@@ -45,26 +47,7 @@ export function Analytics({ workspace, weights, setWeights, projectId }) {
         Adjust your priorities. Quality includes AI-scored purpose fit; speed
         and efficiency use observed runtime and tokens.
       </p>
-      <div className="weight-controls">
-        {Object.keys(weights).map((key) => (
-          <label key={key}>
-            {key}
-            <strong>{weights[key]}</strong>
-            <input
-              aria-label={`${key} weight`}
-              type="range"
-              min="0"
-              max="100"
-              value={weights[key]}
-              onChange={(e) => {
-                const next = { ...weights, [key]: Number(e.target.value) };
-                if (Object.values(next).some((value) => value > 0))
-                  setWeights(next);
-              }}
-            />
-          </label>
-        ))}
-      </div>
+      <ComparisonPriorities weights={weights} setWeights={setWeights} />
       <label className="text-label" htmlFor="comparison-batch">
         Comparison batch
       </label>
@@ -99,35 +82,71 @@ export function Analytics({ workspace, weights, setWeights, projectId }) {
               seven to assess every option.
             </p>
           )}
-          {result.rankings.slice(0, 3).map((rank, i) => (
-            <article className="recommendation" key={rank.id}>
-              <div className="ranking">
-                <span className="rank-index">0{i + 1}</span>
-                <strong>
-                  {structureById[rank.structureId]?.name || rank.structureId}
-                </strong>
-                <div className="ranking-track">
-                  <div style={{ width: `${rank.score}%` }} />
-                </div>
-                <span>{rank.score}/100</span>
-              </div>
-              <p>
-                AI quality: {rank.quality}/100 · Purpose fit: {rank.purposeFit}
-                /100 · Observed runtime:{" "}
-                {(rank.metrics.durationMs / 1000).toFixed(1)}s · Tokens:{" "}
-                {(
-                  rank.metrics.inputTokens + rank.metrics.outputTokens
-                ).toLocaleString()}{" "}
-                · Handoffs: {rank.metrics.handoffs}
-              </p>
-              <p>{rank.reasoning}</p>
-              <ul>
-                {rank.evidence?.map((item, index) => (
-                  <li key={index}>{item}</li>
+          <div className="structure-result-grid">
+            {result.rankings.slice(0, 3).map((rank, i) => (
+              <StructureResult
+                key={rank.id}
+                id={rank.structureId}
+                position={i}
+                score={rank.score}
+                reason={rank.reasoning}
+                evidence={rank.evidence}
+                tradeoff={structureById[rank.structureId]?.caution}
+              >
+                <ResultMetrics
+                  items={[
+                    [
+                      "Observed runtime",
+                      `${(rank.metrics.durationMs / 1000).toFixed(1)}s`,
+                      "Measured",
+                    ],
+                    [
+                      "Tokens used",
+                      (
+                        rank.metrics.inputTokens + rank.metrics.outputTokens
+                      ).toLocaleString(),
+                      "Measured",
+                    ],
+                    ["AI quality", `${rank.quality}/100`, "Model judgment"],
+                    ["Purpose fit", `${rank.purposeFit}/100`, "Model judgment"],
+                  ]}
+                />
+              </StructureResult>
+            ))}
+          </div>
+          <div className="table-scroll">
+            <table aria-label="All completed structure rankings">
+              <caption>Every completed ecosystem, compared</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Rank / structure</th>
+                  <th scope="col">Weighted score</th>
+                  <th scope="col">AI quality</th>
+                  <th scope="col">Purpose fit</th>
+                  <th scope="col">Runtime</th>
+                  <th scope="col">Tokens</th>
+                </tr>
+              </thead>
+              <tbody>
+                {result.rankings.map((rank, index) => (
+                  <tr key={rank.id}>
+                    <th scope="row">
+                      {index + 1}. {structureById[rank.structureId]?.name}
+                    </th>
+                    <td>{rank.score}/100</td>
+                    <td>{rank.quality}/100</td>
+                    <td>{rank.purposeFit}/100</td>
+                    <td>{(rank.metrics.durationMs / 1000).toFixed(1)}s</td>
+                    <td>
+                      {(
+                        rank.metrics.inputTokens + rank.metrics.outputTokens
+                      ).toLocaleString()}
+                    </td>
+                  </tr>
                 ))}
-              </ul>
-            </article>
-          ))}
+              </tbody>
+            </table>
+          </div>
           <p className="setup-note">{result.method}</p>
         </>
       ) : (

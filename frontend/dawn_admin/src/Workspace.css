@@ -1,0 +1,675 @@
+/* The studio carries Dawn's warm horizon into a focused idea-to-decision workspace. */
+.app-shell {
+  --dawn-background: #101c20;
+  --dawn-surface: #1b2a2d;
+  --dawn-inset: #142226;
+  --dawn-border: #34484a;
+  --dawn-muted: #b4c3bd;
+  background:
+    radial-gradient(ellipse at 90% 0%, #b8905320, transparent 42%),
+    var(--dawn-background);
+}
+.app-shell .sidebar {
+  width: 210px;
+  padding: 32px 20px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+.app-shell .brand {
+  letter-spacing: -1px;
+}
+.app-shell .workspace-badge {
+  border-width: 1px 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 18px 0;
+  line-height: 1.5;
+}
+.app-shell .workspace-icon {
+  border-radius: 8px;
+  background: #bcd4c517;
+}
+.app-shell .nav-label {
+  margin-left: 10px;
+}
+.app-shell .nav-item {
+  border-radius: 8px;
+  min-height: 44px;
+  margin-bottom: 6px;
+}
+.app-shell .nav-item.active {
+  background: #bad2c710;
+  color: var(--dawn-sage);
+  border: 1px solid #bad2c729;
+}
+.app-shell .topbar {
+  height: 66px;
+  padding: 0 42px;
+  background: #14222699;
+}
+.app-shell main {
+  max-width: 1320px;
+  padding: 44px 42px;
+}
+.app-shell .page-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 36px;
+  margin-bottom: 32px;
+}
+.app-shell .page-heading h1 {
+  font-family: Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(38px, 4.3vw, 62px);
+  line-height: 1.08;
+  letter-spacing: -2px;
+  margin: 20px 0;
+}
+.app-shell .page-heading h1 span {
+  color: var(--dawn-gold);
+}
+.app-shell .page-heading p {
+  max-width: 560px;
+  font-size: 14px;
+  line-height: 1.85;
+  color: var(--dawn-muted);
+}
+.dawn-emblem {
+  width: 250px;
+  height: 190px;
+  flex-shrink: 0;
+  position: relative;
+  display: grid;
+  align-content: end;
+  text-align: center;
+}
+.emblem-sun {
+  position: absolute;
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  background: linear-gradient(#f4ce94, #be805c55);
+  top: 22px;
+  left: 60px;
+  box-shadow: 0 0 65px #f4ce941a;
+}
+.emblem-sun::before,
+.emblem-sun::after {
+  content: "";
+  position: absolute;
+  inset: -18px;
+  border: 1px solid #f4ce9425;
+  border-radius: 50%;
+}
+.emblem-sun::after {
+  inset: -38px;
+  border-style: dashed;
+}
+.emblem-horizon {
+  position: absolute;
+  inset: 110px 0 30px;
+  border-top: 1px solid #f4ce9480;
+  background: linear-gradient(#152328f2, #15232800);
+  backdrop-filter: blur(4px);
+}
+.dawn-emblem > span {
+  font-size: 8px;
+  letter-spacing: 2px;
+  color: var(--dawn-gold);
+  position: relative;
+  padding-bottom: 8px;
+}
+.idea-journey {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 32px;
+}
+.idea-journey a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 19px 16px;
+  border: 1px solid var(--dawn-border);
+  border-radius: 10px;
+  background: #14222699;
+}
+.idea-journey a:hover {
+  border-color: var(--dawn-sage);
+}
+.idea-journey .current {
+  border-color: #f4ce9466;
+  background: linear-gradient(110deg, #f4ce940c, #14222699);
+}
+.journey-number {
+  font-size: 11px;
+  border: 1px solid var(--dawn-border);
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--dawn-muted);
+}
+.current .journey-number {
+  background: var(--dawn-gold);
+  color: var(--dawn-ink);
+  border-color: var(--dawn-gold);
+}
+.complete .journey-number {
+  color: var(--dawn-sage);
+  background: #bad2c710;
+}
+.idea-journey strong {
+  font-size: 12px;
+  font-weight: 500;
+  display: block;
+}
+.idea-journey small {
+  display: block;
+  font-size: 10px;
+  line-height: 1.6;
+  margin-top: 5px;
+  color: var(--dawn-muted);
+}
+.journey-arrow {
+  margin-left: auto;
+  color: var(--dawn-muted);
+}
+.app-shell .panel {
+  border-radius: 14px;
+  box-shadow: 0 12px 40px #00000014;
+}
+.app-shell .content-panel {
+  padding: 30px;
+  border-top: 1px solid #728e80;
+}
+.app-shell .panel-heading h2,
+.app-shell .workflow-recommendations > h2 {
+  font-family: Georgia, serif;
+  font-size: 28px;
+  font-weight: 400;
+  letter-spacing: -0.6px;
+}
+.editor-status {
+  font-size: 10px;
+  color: var(--dawn-sage);
+  background: #bad2c710;
+  border: 1px solid #bad2c726;
+  border-radius: 20px;
+  padding: 8px 12px;
+  white-space: nowrap;
+}
+.app-shell .content-panel > .muted {
+  margin-top: 12px;
+  font-size: 13px;
+  max-width: 670px;
+}
+.idea-composer-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.65fr) minmax(235px, 1fr);
+  gap: 32px;
+  margin-top: 24px;
+}
+.idea-editor {
+  min-width: 0;
+}
+.app-shell .text-label {
+  font-size: 12px;
+  color: var(--dawn-text);
+  margin-top: 18px;
+}
+.idea-editor > .text-label:first-child {
+  margin-top: 0;
+}
+.optional-label {
+  color: var(--dawn-muted);
+  margin-left: 7px;
+  font-size: 10px;
+}
+.app-shell .content-panel input:not([type="file"]):not([type="range"]),
+.app-shell .content-panel select {
+  font-size: 13px;
+  padding: 13px 14px;
+  background: var(--dawn-inset);
+  color: var(--dawn-text);
+  border-radius: 8px;
+}
+.app-shell .content-panel textarea {
+  min-height: 208px;
+  padding: 18px;
+  font-size: 14px;
+  line-height: 1.85;
+  background: var(--dawn-inset);
+  color: var(--dawn-text);
+  border-radius: 8px;
+}
+.app-shell .content-panel textarea::placeholder {
+  color: #a6b9b1;
+}
+.app-shell .content-meta {
+  font-size: 10px;
+  margin: 10px 0 18px;
+}
+.app-shell .content-meta button {
+  font-size: 11px;
+}
+.app-shell .content-panel .upload-zone {
+  padding: 14px;
+  flex-direction: row;
+  gap: 14px;
+  margin: 16px 0;
+  border-color: #7d958969;
+}
+.app-shell .upload-zone .upload-icon {
+  margin: 0;
+  border: 0;
+  background: #bad2c710;
+  border-radius: 6px;
+}
+.app-shell .upload-zone > span:not(.upload-icon) {
+  margin: 0;
+}
+.app-shell .upload-zone strong {
+  display: block;
+  font-size: 12px;
+  color: var(--dawn-text);
+}
+.app-shell .upload-zone small {
+  display: block;
+  font-size: 10px;
+  margin-top: 5px;
+}
+.app-shell .upload-zone > span:last-child {
+  margin-left: auto;
+  font-size: 20px;
+}
+.app-shell .run-button {
+  min-height: 46px;
+  font-size: 12px;
+  align-items: center;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 14px 17px;
+}
+.app-shell .secondary-button {
+  min-height: 42px;
+  font-size: 12px;
+  border-radius: 8px;
+}
+.app-shell .setup-note {
+  font-size: 11px;
+  line-height: 1.8;
+}
+.source-options {
+  margin-top: 18px;
+}
+.source-options > summary,
+.single-run-options > summary {
+  font-size: 11px;
+  color: var(--dawn-muted);
+  cursor: pointer;
+  padding: 8px 0;
+}
+.idea-compass {
+  padding: 25px;
+  background: linear-gradient(145deg, #bcd4c50d, #14222655);
+  border: 1px solid #bad2c726;
+  border-radius: 10px;
+  align-self: start;
+}
+.compass-symbol {
+  font-size: 40px;
+  color: var(--dawn-gold);
+  margin-bottom: 24px;
+  line-height: 1;
+}
+.idea-compass .eyebrow {
+  font-size: 8px;
+  letter-spacing: 1.3px;
+}
+.idea-compass h3 {
+  font-family: Georgia, serif;
+  font-size: 25px;
+  font-weight: 400;
+  line-height: 1.3;
+  margin: 14px 0;
+}
+.idea-compass p {
+  font-size: 12px;
+  color: var(--dawn-muted);
+  line-height: 1.9;
+}
+.compass-divider {
+  border-top: 1px solid var(--dawn-border);
+  margin: 24px 0;
+}
+.idea-compass h4 {
+  font-size: 13px;
+  font-weight: 500;
+  margin: 0 0 10px;
+}
+.idea-compass .weight-controls {
+  display: grid;
+  gap: 22px;
+  margin: 24px 0;
+}
+.app-shell .weight-controls label {
+  font-size: 12px;
+  text-transform: none;
+}
+.app-shell .weight-controls small {
+  display: block;
+  font-size: 10px;
+  color: var(--dawn-muted);
+}
+.app-shell .weight-controls input {
+  accent-color: var(--dawn-gold);
+  margin: 14px 0 7px;
+  min-height: 20px;
+}
+.execution-launch {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(230px, 1fr);
+  gap: 20px 32px;
+  padding-top: 28px;
+  margin-top: 28px;
+  border-top: 1px solid var(--dawn-border);
+}
+.execution-launch h3 {
+  font-family: Georgia, serif;
+  font-size: 24px;
+  font-weight: 400;
+  margin: 12px 0;
+}
+.execution-launch p:not(.setup-note) {
+  font-size: 12px;
+  color: var(--dawn-muted);
+  line-height: 1.9;
+  max-width: 480px;
+}
+.execution-buttons .run-button {
+  margin-top: 0;
+}
+.single-run-options {
+  margin-top: 9px;
+}
+.single-run-options .routing {
+  margin-top: 10px;
+}
+.app-shell .routing,
+.app-shell .routing strong {
+  font-size: 11px;
+}
+.execution-note {
+  grid-column: 1 / -1;
+  margin-top: 0;
+}
+.app-shell .workflow-recommendations {
+  padding: 30px;
+  border-top: 1px solid #f4ce9470;
+  margin: 26px 0;
+}
+.recommendation-empty {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  padding: 30px 0 8px;
+}
+.recommendation-spark {
+  font-size: 64px;
+  color: var(--dawn-gold);
+  background: #f4ce9409;
+  border: 1px solid #f4ce942b;
+  border-radius: 50%;
+  width: 100px;
+  height: 100px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+}
+.recommendation-empty h3 {
+  font-size: 16px;
+  font-weight: 500;
+  margin-bottom: 12px;
+}
+.recommendation-empty p {
+  font-size: 13px;
+  line-height: 1.9;
+  color: var(--dawn-muted);
+  max-width: 650px;
+}
+.structure-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 18px;
+}
+.structure-chips span {
+  border: 1px solid var(--dawn-border);
+  border-radius: 20px;
+  padding: 6px 10px;
+  font-size: 10px;
+  color: var(--dawn-sage);
+}
+.recommendation-spotlight {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 22px;
+  background: linear-gradient(110deg, #f4ce9415, #f4ce9403);
+  border: 1px solid #f4ce944d;
+  border-radius: 10px;
+  margin: 24px 0;
+}
+.spotlight-icon {
+  font-size: 32px;
+  color: var(--dawn-gold);
+}
+.recommendation-spotlight h3 {
+  font-family: Georgia, serif;
+  font-size: 29px;
+  font-weight: 400;
+  margin: 10px 0;
+}
+.recommendation-spotlight p {
+  font-size: 12px;
+  color: var(--dawn-muted);
+  line-height: 1.8;
+}
+.app-shell .structure-result {
+  border-radius: 10px;
+  padding: 22px;
+}
+.app-shell .run-panel {
+  border-top: 1px solid #bad2c74d;
+}
+.app-shell footer {
+  padding-top: 22px;
+  border-top: 1px solid var(--dawn-border);
+  font-size: 10px;
+  line-height: 1.8;
+}
+.app-shell caption {
+  text-align: left;
+  color: var(--dawn-text);
+  font-size: 15px;
+  padding: 20px 0 10px;
+}
+#idea-input,
+#idea-recommendation,
+#idea-execution {
+  scroll-margin-top: 24px;
+}
+@media (max-width: 1150px) {
+  .app-shell main {
+    padding: 32px 26px;
+  }
+  .dawn-emblem {
+    width: 190px;
+    transform: scale(0.85);
+    transform-origin: center;
+  }
+  .emblem-sun {
+    left: 30px;
+  }
+  .idea-composer-grid {
+    gap: 22px;
+    grid-template-columns: minmax(0, 1.4fr) minmax(220px, 1fr);
+  }
+  .idea-compass {
+    padding: 20px;
+  }
+  .idea-journey a {
+    padding: 14px 12px;
+    gap: 8px;
+  }
+  .journey-arrow {
+    display: none;
+  }
+}
+@media (max-width: 920px) {
+  .dawn-emblem {
+    display: none;
+  }
+  .idea-composer-grid {
+    grid-template-columns: 1fr;
+  }
+  .idea-compass .weight-controls {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+  }
+  .compass-symbol,
+  .compass-divider,
+  .idea-compass > .eyebrow,
+  .idea-compass > h3,
+  .idea-compass > p:first-of-type {
+    display: none;
+  }
+  .execution-launch {
+    grid-template-columns: 1fr;
+  }
+  .idea-journey small {
+    display: none;
+  }
+  .idea-journey a {
+    align-items: flex-start;
+  }
+  .idea-journey strong {
+    line-height: 1.6;
+  }
+}
+@media (max-width: 650px) {
+  .app-shell .sidebar {
+    width: 100%;
+    position: static;
+    height: auto;
+    padding: 16px 20px;
+  }
+  .app-shell .brand {
+    font-size: 27px;
+  }
+  .app-shell .nav-item {
+    margin-bottom: 0;
+  }
+  .app-shell .topbar {
+    padding: 0 20px;
+    height: 58px;
+    gap: 12px;
+  }
+  .app-shell .topbar .crumb {
+    margin: 0 6px;
+  }
+  .app-shell .topbar .welcome-back {
+    font-size: 10px;
+  }
+  .app-shell main {
+    padding: 30px 16px;
+  }
+  .app-shell .page-heading {
+    margin-bottom: 25px;
+  }
+  .app-shell .page-heading h1 {
+    font-size: 42px;
+  }
+  .app-shell .page-heading p {
+    font-size: 13px;
+  }
+  .idea-journey {
+    gap: 6px;
+    margin-bottom: 24px;
+  }
+  .idea-journey a {
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px 10px;
+  }
+  .idea-journey strong {
+    font-size: 11px;
+  }
+  .journey-number {
+    width: 25px;
+    height: 25px;
+    font-size: 10px;
+  }
+  .app-shell .content-panel,
+  .app-shell .workflow-recommendations {
+    padding: 20px;
+  }
+  .app-shell .panel-heading {
+    align-items: flex-start;
+  }
+  .app-shell .panel-heading h2,
+  .app-shell .workflow-recommendations > h2 {
+    font-size: 25px;
+  }
+  .editor-status {
+    font-size: 9px;
+    padding: 6px 8px;
+    white-space: normal;
+    text-align: center;
+    max-width: 85px;
+  }
+  .app-shell .content-panel input:not([type="file"]):not([type="range"]),
+  .app-shell .content-panel select,
+  .app-shell .content-panel textarea {
+    font-size: 16px;
+  }
+  .idea-compass {
+    padding: 17px;
+  }
+  .idea-compass .weight-controls {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+  .recommendation-empty {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+  }
+  .recommendation-spark {
+    width: 60px;
+    height: 60px;
+    font-size: 42px;
+  }
+  .recommendation-spotlight {
+    padding: 18px;
+    gap: 14px;
+  }
+  .recommendation-spotlight h3 {
+    font-size: 25px;
+  }
+}
+.app-shell .execution-launch {
+  padding: 28px 30px;
+  margin: 26px 0;
+  border: 1px solid #bad2c74d;
+}
+@media (max-width: 650px) {
+  .app-shell .execution-launch {
+    padding: 22px 20px;
+  }
+}

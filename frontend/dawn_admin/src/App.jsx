@@ -1,16 +1,22 @@
 import { useState } from "react";
-import { structures, structureById } from "../../../shared/structures";
+import { IdeaJourney } from "./components/IdeaJourney";
+import { structureById } from "../../../shared/structures";
 import { useWorkspace } from "./hooks/useWorkspace";
+import { WorkflowRecommendations } from "./components/WorkflowRecommendations";
+import { DemoTutorial } from "./components/DemoTutorial";
 import { Welcome } from "./components/Welcome";
 import { Sidebar } from "./components/Sidebar";
-import { StructureDiagram } from "./components/StructureDiagram";
+import { EcosystemCarousel } from "./components/EcosystemCarousel";
 import { ContentWorkspace } from "./components/ContentWorkspace";
 import { Analytics } from "./components/Analytics";
 import { RunTimeline } from "./components/RunTimeline";
 import { ActionProposals } from "./components/ActionProposals";
 import { WorkspaceArtifacts } from "./components/WorkspaceArtifacts";
 import "./App.css";
+import "./Workspace.css";
 export default function App() {
+  const [recommendations, setRecommendations] = useState(null);
+  const [demo, setDemo] = useState(false);
   const [exploring, setExploring] = useState(false);
   const [selected, setSelected] = useState("flat"),
     [view, setView] = useState("studio"),
@@ -28,7 +34,7 @@ export default function App() {
   };
   const titles = {
     studio: "Ecosystem studio",
-    analytics: "Performance analytics",
+    analytics: "Top structures",
     compare: "Structure comparison",
     actions: "Action proposals",
   };
@@ -39,9 +45,14 @@ export default function App() {
         (!projectId || run.projectId === projectId),
     )
     .slice(0, 6);
+  if (demo) return <DemoTutorial onExit={() => setDemo(false)} />;
   if (!workspace.authenticated && !exploring)
     return (
-      <Welcome workspace={workspace} onExplore={() => setExploring(true)} />
+      <Welcome
+        workspace={workspace}
+        onExplore={() => setExploring(true)}
+        onDemo={() => setDemo(true)}
+      />
     );
   return (
     <div className="app-shell">
@@ -56,6 +67,7 @@ export default function App() {
             await workspace.logout();
             setExploring(false);
             setProjectId("");
+            setRecommendations(null);
           },
         }}
       />
@@ -78,48 +90,52 @@ export default function App() {
         </header>
         <main>
           <div className="page-heading">
-            <div className="eyebrow">ONE IDEA. MULTIPLE PERSPECTIVES.</div>
-            <h1>
-              Find the right structure.
-              <br />
-              <span>Give your idea room to thrive.</span>
-            </h1>
-            <p>
-              Save a workflow, compare seven structures, and follow your agents
-              from inception toward production readiness.
-            </p>
-          </div>
-          <div className="intro-metrics">
             <div>
-              <span>Organizational structures</span>
-              <strong>
-                07 <small>distinct operating models</small>
-              </strong>
+              <div className="eyebrow">
+                A LITTLE SPARK. A CLEARER DIRECTION.
+              </div>
+              <h1>
+                {view === "studio" ? (
+                  <>
+                    Your idea.
+                    <br />
+                    <span>Its best way forward.</span>
+                  </>
+                ) : (
+                  <>
+                    Seven structures.
+                    <br />
+                    <span>One informed decision.</span>
+                  </>
+                )}
+              </h1>
+              <p>
+                Tell Dawn what you want to build. Find the organizational
+                structure that fits your idea, then compare how seven agent
+                ecosystems bring it to life.
+              </p>
             </div>
-            <div>
-              <span>Completed executions</span>
-              <strong>
-                {String(
-                  workspace.runs.filter((run) => run.status === "completed")
-                    .length,
-                ).padStart(2, "0")}{" "}
-                <small>measured agent workflows</small>
-              </strong>
-            </div>
-            <div>
-              <span>Execution environment</span>
-              <strong className="setup-value">
-                {workspace.status?.providerConfigured
-                  ? "Ready to execute"
-                  : "Awaiting connection"}
-                <small>
-                  {workspace.status
-                    ? "MongoDB connected"
-                    : "Sign in to connect your workspace"}
-                </small>
-              </strong>
+            <div className="dawn-emblem" aria-hidden="true">
+              <div className="emblem-sun" />
+              <div className="emblem-horizon" />
+              <span>ONE IDEA / SEVEN POSSIBILITIES</span>
             </div>
           </div>
+          {view === "studio" && (
+            <IdeaJourney
+              hasIdea={Boolean(projectId)}
+              hasRecommendation={Boolean(recommendations)}
+              hasComparison={Boolean(
+                projectId &&
+                workspace.runs.some(
+                  (run) =>
+                    run.projectId === projectId &&
+                    run.batchId === workspace.batchId,
+                ),
+              )}
+              onCompare={() => setView("analytics")}
+            />
+          )}
           {workspace.error && (
             <div className="connection-notice" role="status">
               {workspace.error}
@@ -134,100 +150,25 @@ export default function App() {
             />
           ) : null}
           <div hidden={view !== "studio"}>
-            <div className="section-title">
-              <div>
-                <h2>Choose your ecosystem</h2>
-                <p>
-                  Same idea. A different way to organize, collaborate, and
-                  execute.
-                </p>
-              </div>
-              <span className="subtle-pill">
-                Based on your organizational notes
-              </span>
-            </div>
-            <div
-              className="structure-tabs"
-              role="tablist"
-              aria-label="Organizational structures"
+            <ContentWorkspace
+              model={model}
+              workspace={workspace}
+              weights={weights}
+              setWeights={setWeights}
+              onCompare={() => setView("analytics")}
+              onProject={(id) => {
+                setProjectId(id);
+                setRecommendations(null);
+              }}
+              assessmentResult={recommendations}
+              onRecommendations={setRecommendations}
             >
-              {structures.map((item) => (
-                <button
-                  role="tab"
-                  aria-selected={selected === item.id}
-                  aria-controls="structure-panel"
-                  id={`tab-${item.id}`}
-                  key={item.id}
-                  onClick={() => setSelected(item.id)}
-                >
-                  <span aria-hidden="true">{item.symbol}</span>
-                  {item.name}
-                </button>
-              ))}
-            </div>
-            <div className="studio-grid">
-              <section
-                className="panel model-panel"
-                role="tabpanel"
-                id="structure-panel"
-                aria-labelledby={`tab-${selected}`}
-              >
-                <div className="panel-heading">
-                  <div>
-                    <span className="eyebrow">STRUCTURE PREVIEW</span>
-                    <h2>{model.name} ecosystem</h2>
-                  </div>
-                  <span className="model-tag">{model.tag}</span>
-                </div>
-                <p className="model-description">{model.description}</p>
-                <StructureDiagram model={model} />
-                <div className="diagram-legend">
-                  <span>
-                    <i className="legend-dot navy" /> Leadership / strategy
-                  </span>
-                  <span>
-                    <i className="legend-dot teal" /> Teams / specialists
-                  </span>
-                  <span>
-                    <i className="legend-dot orange" /> Collaboration / guidance
-                  </span>
-                </div>
-                <div className="model-details">
-                  <div>
-                    <span>DECISION AUTHORITY</span>
-                    <p>{model.authority}</p>
-                  </div>
-                  <div>
-                    <span>INFORMATION FLOW</span>
-                    <p>{model.flow}</p>
-                  </div>
-                </div>
-              </section>
-              <ContentWorkspace
-                model={model}
-                workspace={workspace}
-                weights={weights}
-                onProject={setProjectId}
+              <WorkflowRecommendations
+                result={recommendations}
+                onSelect={onSelect}
               />
-            </div>
-            <div className="insight-grid">
-              <section className="panel insight">
-                <span className="insight-icon">↗</span>
-                <div>
-                  <span className="eyebrow">WHERE IT THRIVES</span>
-                  <h3>{model.fit}</h3>
-                  <p>{model.strength}</p>
-                </div>
-              </section>
-              <section className="panel insight">
-                <span className="insight-icon risk-icon">◎</span>
-                <div>
-                  <span className="eyebrow">DESIGN FOR THE TRADE-OFF</span>
-                  <h3>{model.risk}</h3>
-                  <p>{model.caution}</p>
-                </div>
-              </section>
-            </div>
+            </ContentWorkspace>
+            <EcosystemCarousel selected={selected} onSelect={setSelected} />
             <RunTimeline runs={selectedRuns} refresh={workspace.refresh} />
             <details className="panel">
               <summary>Actions & saved deliverables</summary>

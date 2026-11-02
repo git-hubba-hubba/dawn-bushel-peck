@@ -1,3 +1,9 @@
+import { rateLimit } from "express-rate-limit";
+import { createProvider } from "../services/provider.js";
+import {
+  recommendStructures,
+  assessmentFailure,
+} from "../services/recommendations.js";
 import { Router } from "express";
 import { ObjectId } from "mongodb";
 import multer from "multer";
@@ -15,6 +21,7 @@ import {
   executeStoredAction,
 } from "../services/tools.js";
 import { runStore } from "../services/run-store.js";
+const assessing = new Set();
 const objectId = (value) =>
   /^[a-f0-9]{24}$/.test(value || "") ? new ObjectId(value) : null;
 export function apiRoutes(db, config, client) {
@@ -96,6 +103,60 @@ export function apiRoutes(db, config, client) {
     if (!project) return res.status(404).json({ error: "Project not found." });
     res.json(project);
   });
+  router.post(
+    "/projects/:id/recommendations",
+    rateLimit({ windowMs: 15 * 60000, limit: 5 }),
+    async (req, res) => {
+      const weights = weightsSchema.parse(req.body?.weights);
+      const project = await db.collection("projects").findOne({
+        _id: objectId(req.params.id),
+        workspaceId: req.workspaceId,
+      });
+      if (!project)
+        return res.status(404).json({ error: "Project not found." });
+      if (
+        project.recommendations &&
+        JSON.stringify(project.recommendations.weights) ===
+          JSON.stringify(weights)
+      )
+        return res.json(project.recommendations);
+      if (!config.key)
+        return res.status(503).json({
+          error: "Configure the AI provider to assess this workflow.",
+        });
+      if (assessing.has(req.workspaceId))
+        return res.status(409).json({
+          error: "A workflow assessment is already running. Please wait.",
+        });
+      assessing.add(req.workspaceId);
+      try {
+        const result = await recommendStructures({
+          content: project.content,
+          weights,
+          provider: createProvider(config),
+        });
+        const updated = await db
+          .collection("projects")
+          .updateOne(
+            { _id: project._id, workspaceId: req.workspaceId },
+            { $set: { recommendations: result } },
+          );
+        if (!updated.matchedCount)
+          return res
+            .status(404)
+            .json({ error: "Source workflow was removed." });
+        res.json(result);
+      } catch (error) {
+        const failure = assessmentFailure(error);
+        console.error("Workflow assessment failed:", failure.code);
+        res
+          .status(failure.status)
+          .json({ error: failure.error, code: failure.code });
+      } finally {
+        assessing.delete(req.workspaceId);
+      }
+    },
+  );
   router.delete("/projects/:id", async (req, res) => {
     await store.deleteProject(req.workspaceId, objectId(req.params.id));
     res.status(204).end();

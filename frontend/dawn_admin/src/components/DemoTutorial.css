@@ -1,0 +1,163 @@
+.demo-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse at 50% 0%, #38433b45, transparent 55%),
+    var(--dawn-background);
+}
+.demo-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 22px 5%;
+  border-bottom: 1px solid var(--dawn-border);
+}
+.demo-header strong {
+  font-size: 28px;
+  letter-spacing: -1px;
+}
+.demo-header strong span {
+  color: var(--dawn-gold);
+}
+.demo-header small {
+  display: inline-block;
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--dawn-sage);
+  margin-left: 18px;
+}
+.demo-header .secondary-button {
+  width: auto;
+  margin: 0;
+}
+.demo-page main {
+  max-width: 1000px;
+}
+.demo-notice {
+  padding: 14px 18px;
+  border: 1px solid var(--dawn-border);
+  border-radius: 8px;
+  color: var(--dawn-gold);
+  background: var(--dawn-inset);
+  font-size: 12px;
+  line-height: 1.7;
+  margin-bottom: 24px;
+}
+.demo-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 24px 0;
+}
+.demo-steps button {
+  border: 1px solid var(--dawn-border);
+  background: var(--dawn-inset);
+  color: var(--dawn-muted);
+  border-radius: 8px;
+  padding: 12px 16px;
+}
+.demo-steps button[aria-current] {
+  color: var(--dawn-gold);
+  background: var(--dawn-raised);
+}
+.demo-panel {
+  padding: 28px;
+}
+.demo-panel h2 {
+  margin: 12px 0;
+  font-size: 23px;
+}
+.demo-panel h3 {
+  margin: 14px 0;
+}
+.demo-panel p {
+  font-size: 13px;
+  line-height: 1.8;
+  margin: 12px 0;
+  color: var(--dawn-muted);
+}
+.demo-panel .diagram {
+  margin: 20px 0;
+}
+.demo-source {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background: var(--dawn-inset);
+  border: 1px solid var(--dawn-border);
+  padding: 22px;
+  border-radius: 8px;
+  color: var(--dawn-text);
+  font-size: 13px;
+  line-height: 1.8;
+}
+.demo-download {
+  display: block;
+  text-align: center;
+  color: var(--dawn-gold);
+}
+.demo-controls {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+}
+.demo-controls > button {
+  flex: 1;
+  margin-top: 12px;
+}
+.demo-navigation {
+  margin-top: 14px;
+}
+.demo-agent-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--dawn-border);
+  margin-right: 10px;
+}
+.demo-agent-dot.done {
+  background: var(--dawn-sage);
+}
+.demo-agent-dot.running {
+  background: var(--dawn-gold);
+  animation: demo-pulse 1s ease-in-out infinite alternate;
+}
+.demo-deliverable {
+  border-top: 1px solid var(--dawn-border);
+  padding: 18px 0;
+}
+.demo-deliverable summary {
+  color: var(--dawn-gold);
+  cursor: pointer;
+}
+.demo-panel .demo-results-heading {
+  margin-top: 32px;
+}
+@keyframes demo-pulse {
+  to {
+    opacity: 0.3;
+  }
+}
+@media (max-width: 650px) {
+  .demo-panel {
+    padding: 18px;
+  }
+  .demo-steps button {
+    flex: 1 1 40%;
+    font-size: 11px;
+  }
+  .demo-header small {
+    display: block;
+    margin: 6px 0 0;
+  }
+  .demo-controls {
+    flex-wrap: wrap;
+  }
+  .demo-controls > button {
+    min-width: 130px;
+  }
+  .demo-page .step-list summary > span:last-child {
+    float: none;
+    display: block;
+    margin: 7px 0 0 18px;
+  }
+}

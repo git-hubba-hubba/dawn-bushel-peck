@@ -54,6 +54,7 @@ test("unconfigured execution is gated and input remains editable", async ({
   await page
     .getByLabel("Or write your idea")
     .fill("A repair service that connects neighbors.");
+  await page.getByText("Or run one ecosystem", { exact: true }).click();
   await expect(
     page.getByRole("button", { name: "Run through ecosystem" }),
   ).toBeDisabled();
@@ -65,6 +66,7 @@ test("unconfigured execution is gated and input remains editable", async ({
   await expect(page.getByLabel("Or write your idea")).toHaveValue("");
 });
 test("desktop and mobile layouts fit their viewport", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
   await page.setViewportSize({ width: 1440, height: 1100 });
   await page.screenshot({
     path: "/private/tmp/dawn-dashboard-desktop.png",
@@ -89,4 +91,53 @@ test("desktop and mobile layouts fit their viewport", async ({ page }) => {
     path: "/private/tmp/dawn-dashboard-mobile.png",
     fullPage: true,
   });
+});
+
+test("ecosystem carousel supports arrows, keyboard and horizontal scrolling with visible advantages", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  const carousel = page.getByRole("region", { name: "Ecosystem carousel" });
+  await expect(
+    carousel.getByRole("button", { name: "Previous ecosystem" }),
+  ).toBeDisabled();
+  await carousel.getByRole("button", { name: "Next ecosystem" }).click();
+  await expect(
+    page.getByRole("tab", { name: "Functional", exact: true }),
+  ).toHaveAttribute("aria-selected", "true");
+  await expect(
+    carousel.getByRole("heading", { name: "Depth by discipline" }),
+  ).toBeVisible();
+  await page.getByRole("tab", { name: "Functional", exact: true }).focus();
+  await page.keyboard.press("ArrowRight");
+  await expect(
+    page.getByRole("tab", { name: "Divisional", exact: true }),
+  ).toHaveAttribute("aria-selected", "true");
+  await page.keyboard.press("End");
+  await expect(
+    page.getByRole("heading", { name: "Decentralized ecosystem", exact: true }),
+  ).toBeVisible();
+  await expect(
+    carousel.getByRole("button", { name: "Next ecosystem" }),
+  ).toBeDisabled();
+  await page
+    .locator(".ecosystem-viewport")
+    .evaluate((track) =>
+      track.scrollTo({ left: 3 * track.clientWidth, behavior: "instant" }),
+    );
+  await expect(
+    page.getByRole("tab", { name: "Agile", exact: true }),
+  ).toHaveAttribute("aria-selected", "true");
+  await expect(
+    carousel.getByRole("heading", { name: "Feedback before commitment" }),
+  ).toBeVisible();
+  await expect(
+    carousel.getByRole("heading", { name: "What this structure gives you" }),
+  ).toHaveCount(1);
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth,
+    ),
+  ).toBe(true);
 });

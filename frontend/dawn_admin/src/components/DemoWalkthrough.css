@@ -1,0 +1,613 @@
+.demo-walkthrough {
+  border: 1px solid #60766a;
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--dawn-inset);
+  box-shadow: 0 24px 80px #0003;
+  margin: 26px 0;
+}
+.tour-window-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 22px;
+  border-bottom: 1px solid var(--dawn-border);
+  font-size: 10px;
+  color: var(--dawn-muted);
+  letter-spacing: 0.7px;
+}
+.tour-window-dots {
+  display: flex;
+  gap: 5px;
+}
+.tour-window-dots i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #698277;
+}
+.tour-window-dots i:first-child {
+  background: var(--dawn-gold);
+}
+.tour-example-badge {
+  margin-left: auto;
+  font-size: 8px;
+  letter-spacing: 1px;
+  color: var(--dawn-sage);
+}
+.tour-scene {
+  padding: 24px 30px 32px;
+  background:
+    radial-gradient(ellipse at 50% 0%, #f4ce9415, transparent 75%),
+    radial-gradient(#78958420 0.8px, transparent 0.8px);
+  background-size:
+    auto,
+    22px 22px;
+  animation: tour-scene-enter 0.6s ease both;
+}
+.tour-scene-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--dawn-muted);
+  font-size: 10px;
+  margin-bottom: 24px;
+}
+.tour-idea-scene {
+  min-height: 320px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  padding: 25px 20px;
+}
+.tour-idea-icon {
+  font-size: 65px;
+  color: var(--dawn-gold);
+  animation: tour-orbit 8s ease-in-out infinite;
+}
+.tour-mock-editor {
+  width: 480px;
+  max-width: 100%;
+  padding: 26px;
+  border: 1px solid #8da49670;
+  border-radius: 12px;
+  background: #1b2a2df2;
+  box-shadow: 0 12px 50px #0002;
+}
+.tour-field-label {
+  font-size: 9px;
+  color: var(--dawn-sage);
+  letter-spacing: 2px;
+}
+.tour-mock-editor h2 {
+  font:
+    400 30px/1.25 Georgia,
+    serif;
+  margin: 16px 0;
+}
+.tour-mock-editor p {
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--dawn-muted);
+}
+.tour-typed-line {
+  clip-path: inset(0 100% 0 0);
+  animation: tour-type 4s steps(45) forwards;
+}
+.tour-idea-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 22px;
+}
+.tour-idea-facts span {
+  font-size: 9px;
+  padding: 7px 9px;
+  background: #bad2c70c;
+  border: 1px solid #bad2c733;
+  border-radius: 6px;
+  animation: tour-rise 0.6s calc(var(--item) * 0.5s + 0.5s) both;
+}
+.tour-mock-action {
+  margin-top: 22px;
+  padding: 13px;
+  background: var(--dawn-gold);
+  color: var(--dawn-ink);
+  font-size: 11px;
+  border-radius: 6px;
+  display: flex;
+  justify-content: space-between;
+}
+.tour-cursor {
+  position: absolute;
+  right: 13%;
+  bottom: 3px;
+  font-size: 27px;
+  color: var(--dawn-gold);
+  animation: tour-pointer 6s ease-in-out infinite;
+  pointer-events: none;
+}
+.tour-cursor small {
+  font-size: 9px;
+  background: var(--dawn-gold);
+  color: var(--dawn-ink);
+  padding: 8px;
+  border-radius: 4px;
+  margin-left: 3px;
+}
+.tour-fit-scene {
+  min-height: 320px;
+  padding: 10px 15px;
+}
+.tour-stage-kicker {
+  text-align: center;
+  font-size: 9px;
+  letter-spacing: 1.8px;
+  color: var(--dawn-sage);
+  margin: 0 0 24px;
+}
+.tour-structure-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+.tour-structure-tile {
+  padding: 20px 12px;
+  text-align: center;
+  background: #1b2a2de8;
+  border: 1px solid var(--dawn-border);
+  border-radius: 10px;
+  animation: tour-scan 7s calc(var(--item) * 0.5s) both;
+}
+.tour-structure-tile > span {
+  display: block;
+  font-size: 29px;
+  color: var(--dawn-sage);
+  margin-bottom: 12px;
+}
+.tour-structure-tile strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+}
+.tour-structure-tile small {
+  display: block;
+  font-size: 9px;
+  line-height: 1.6;
+  color: var(--dawn-muted);
+  margin-top: 8px;
+}
+.tour-structure-tile.recommended {
+  border-color: var(--dawn-gold);
+  background: #f4ce9410;
+}
+.tour-structure-tile.recommended > span,
+.tour-structure-tile.recommended small {
+  color: var(--dawn-gold);
+}
+.tour-stage-footnote {
+  text-align: center;
+  color: var(--dawn-muted);
+  font-size: 10px;
+  line-height: 1.7;
+  margin-top: 20px;
+}
+.tour-flow-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 12px;
+}
+.tour-flow-heading h2 {
+  font:
+    400 25px Georgia,
+    serif;
+}
+.tour-flow-heading > span {
+  font-size: 11px;
+  color: var(--dawn-gold);
+}
+.tour-flow-scroll {
+  overflow-x: auto;
+}
+.tour-flow {
+  display: block;
+  width: 100%;
+  min-width: 530px;
+  max-height: 440px;
+}
+.tour-connection {
+  fill: none;
+  stroke: #435b55;
+  stroke-width: 1.5;
+  transition: stroke 0.4s;
+}
+.tour-connection.delivered {
+  stroke: #b7d0bd;
+}
+.tour-connection.flowing {
+  stroke: var(--dawn-gold);
+  stroke-dasharray: 7 6;
+  animation: tour-handoff 1s linear infinite;
+}
+.tour-flow-node rect {
+  fill: #1b2a2d;
+  stroke: #4c625b;
+  transition:
+    fill 0.4s,
+    stroke 0.4s;
+}
+.tour-flow-node circle {
+  fill: #60776c;
+}
+.tour-flow-node text {
+  fill: var(--dawn-muted);
+  font-size: 10px;
+}
+.tour-flow-node.running rect {
+  stroke: var(--dawn-gold);
+  fill: #393c30;
+  animation: tour-node-glow 1.4s ease-in-out infinite alternate;
+}
+.tour-flow-node.running circle {
+  fill: var(--dawn-gold);
+}
+.tour-flow-node.done rect {
+  stroke: var(--dawn-sage);
+  fill: #294238;
+}
+.tour-flow-node.done circle {
+  fill: var(--dawn-sage);
+}
+.tour-flow-node.done text,
+.tour-flow-node.running text {
+  fill: var(--dawn-text);
+}
+.tour-flow-legend {
+  display: flex;
+  justify-content: center;
+  gap: 22px;
+  font-size: 10px;
+  color: var(--dawn-muted);
+  margin-top: 18px;
+}
+.tour-flow-legend span:nth-child(2) {
+  color: var(--dawn-gold);
+}
+.tour-flow-legend span:nth-child(3) {
+  color: var(--dawn-sage);
+}
+.tour-outcome-scene {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 28px;
+  min-height: 340px;
+  padding: 12px 16px;
+}
+.tour-winner {
+  text-align: center;
+  padding: 25px;
+  border: 1px solid #f4ce9460;
+  border-radius: 12px;
+  background: linear-gradient(140deg, #f4ce9414, #1b2a2d);
+  animation: tour-rise 0.8s both;
+}
+.tour-winner-symbol {
+  display: block;
+  font-size: 55px;
+  color: var(--dawn-gold);
+  margin-bottom: 20px;
+}
+.tour-winner h2 {
+  font:
+    400 30px Georgia,
+    serif;
+  margin: 17px 0;
+}
+.tour-winner p {
+  color: var(--dawn-muted);
+  font-size: 12px;
+  line-height: 1.9;
+}
+.tour-winner-note {
+  display: block;
+  font-size: 9px;
+  color: var(--dawn-sage);
+  line-height: 1.7;
+  margin-top: 18px;
+}
+.tour-package {
+  display: grid;
+  gap: 10px;
+}
+.tour-package > div {
+  padding: 15px;
+  border: 1px solid var(--dawn-border);
+  border-radius: 8px;
+  background: #1b2a2dee;
+  font-size: 12px;
+  animation: tour-rise 0.6s calc(var(--item) * 0.4s + 0.4s) both;
+}
+.tour-package span {
+  color: var(--dawn-sage);
+  margin-right: 12px;
+}
+.tour-package small {
+  display: block;
+  color: var(--dawn-muted);
+  font-size: 9px;
+  margin: 6px 0 0 25px;
+}
+.tour-guide {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+  padding: 28px 30px;
+  border-top: 1px solid var(--dawn-border);
+  background: var(--dawn-surface);
+}
+.tour-guide-mark {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  background: var(--dawn-gold);
+  color: var(--dawn-ink);
+  border-radius: 12px;
+  font:
+    26px Georgia,
+    serif;
+}
+.tour-caption h3 {
+  font:
+    400 25px/1.3 Georgia,
+    serif;
+  margin: 10px 0;
+}
+.tour-caption p {
+  font-size: 13px;
+  line-height: 1.85;
+  color: var(--dawn-muted);
+  max-width: 650px;
+}
+.tour-playback {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 0 30px 24px;
+  background: var(--dawn-surface);
+}
+.tour-playback .run-button {
+  width: auto;
+  min-width: 210px;
+  gap: 24px;
+  margin: 0;
+  font-size: 12px;
+  min-height: 44px;
+  align-items: center;
+}
+.tour-playback-note {
+  font-size: 10px;
+  color: var(--dawn-muted);
+}
+.tour-restart {
+  border: 0;
+  padding: 12px 0;
+  background: transparent;
+  color: var(--dawn-sage);
+  font-size: 11px;
+}
+.tour-chapter-progress {
+  height: 3px;
+  background: var(--dawn-border);
+}
+.tour-chapter-progress > span {
+  display: block;
+  height: 100%;
+  background: var(--dawn-gold);
+  transition: width 0.25s linear;
+}
+.demo-chapter-details > summary {
+  font-size: 12px;
+  color: var(--dawn-sage);
+  cursor: pointer;
+  padding: 12px 0 20px;
+}
+.demo-walkthrough[data-playing="false"] *,
+.demo-walkthrough[data-playing="false"] *::before,
+.demo-walkthrough[data-playing="false"] *::after {
+  animation-play-state: paused;
+}
+@keyframes tour-scene-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes tour-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes tour-type {
+  to {
+    clip-path: inset(0);
+  }
+}
+@keyframes tour-orbit {
+  50% {
+    transform: translateY(-12px) rotate(30deg);
+  }
+}
+@keyframes tour-pointer {
+  50% {
+    transform: translate(-20px, -30px);
+  }
+}
+@keyframes tour-scan {
+  15%,
+  30% {
+    border-color: var(--dawn-gold);
+    box-shadow: 0 0 25px #f4ce941c;
+  }
+}
+@keyframes tour-handoff {
+  to {
+    stroke-dashoffset: -26;
+  }
+}
+@keyframes tour-node-glow {
+  to {
+    stroke-opacity: 0.45;
+  }
+}
+/* Idle and paused scenes stay readable; playback only adds motion. */
+.demo-walkthrough[data-playing="false"] .tour-scene,
+.demo-walkthrough[data-playing="false"] .tour-winner,
+.demo-walkthrough[data-playing="false"] .tour-package > div,
+.demo-walkthrough[data-playing="false"] .tour-idea-facts span {
+  opacity: 1;
+  transform: none;
+  animation: none;
+}
+.demo-walkthrough[data-playing="false"] .tour-typed-line {
+  clip-path: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .demo-walkthrough *,
+  .demo-walkthrough *::before,
+  .demo-walkthrough *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+  .demo-walkthrough .tour-typed-line {
+    clip-path: none;
+  }
+  .demo-agent-dot.running {
+    animation: none;
+  }
+}
+@media (max-width: 650px) {
+  .tour-window-bar {
+    padding: 14px;
+    gap: 10px;
+    font-size: 9px;
+  }
+  .tour-example-badge {
+    font-size: 7px;
+    letter-spacing: 0.5px;
+  }
+  .tour-scene {
+    padding: 20px 16px;
+  }
+  .tour-idea-scene {
+    padding: 12px 0 30px;
+    min-height: 310px;
+  }
+  .tour-idea-icon {
+    display: none;
+  }
+  .tour-mock-editor {
+    padding: 20px;
+  }
+  .tour-mock-editor h2 {
+    font-size: 27px;
+  }
+  .tour-cursor {
+    right: 0;
+    bottom: 0;
+  }
+  .tour-fit-scene {
+    padding: 0;
+  }
+  .tour-structure-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .tour-structure-tile {
+    padding: 14px 8px;
+  }
+  .tour-structure-tile > span {
+    font-size: 24px;
+    margin-bottom: 8px;
+  }
+  .tour-stage-kicker {
+    font-size: 8px;
+    line-height: 1.8;
+  }
+  .tour-outcome-scene {
+    grid-template-columns: 1fr;
+    padding: 0;
+    gap: 16px;
+  }
+  .tour-winner {
+    padding: 20px;
+  }
+  .tour-package {
+    gap: 7px;
+  }
+  .tour-package > div {
+    padding: 12px;
+  }
+  .tour-guide {
+    padding: 22px 18px;
+    gap: 12px;
+  }
+  .tour-guide-mark {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    font-size: 21px;
+  }
+  .tour-caption .eyebrow {
+    font-size: 8px;
+    letter-spacing: 1px;
+  }
+  .tour-caption h3 {
+    font-size: 23px;
+  }
+  .tour-caption p {
+    font-size: 12px;
+  }
+  .tour-playback {
+    padding: 0 18px 22px;
+    gap: 12px;
+  }
+  .tour-playback .run-button {
+    width: 100%;
+  }
+  .tour-flow-heading h2 {
+    font-size: 22px;
+  }
+}
+.demo-tour-start {
+  width: auto;
+  gap: 28px;
+  align-items: center;
+  font-size: 12px;
+  min-height: 44px;
+  margin-top: 22px;
+}
+.demo-walkthrough {
+  scroll-margin-top: 20px;
+}
+.demo-page .page-heading > p {
+  max-width: 630px;
+  font-size: 13px;
+  line-height: 1.8;
+}

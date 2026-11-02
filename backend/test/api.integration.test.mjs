@@ -91,6 +91,31 @@ test("MongoDB API: authentication, ingestion, queue transactions, results, appro
     });
     assert.equal(privateProject.status, 201);
     const privateId = (await privateProject.json())._id;
+    const assessmentWeights = { quality: 50, speed: 50, efficiency: 50 };
+    await db
+      .collection("projects")
+      .updateOne(
+        { _id: new ObjectId(privateId) },
+        {
+          $set: {
+            recommendations: {
+              objective: "Private repair pilot",
+              weights: assessmentWeights,
+              recommendations: [],
+            },
+          },
+        },
+      );
+    const cachedAssessment = await request(
+      `/projects/${privateId}/recommendations`,
+      { method: "POST", body: { weights: assessmentWeights } },
+    );
+    assert.equal(cachedAssessment.status, 200);
+    assert.equal(
+      (await cachedAssessment.json()).objective,
+      "Private repair pilot",
+    );
+
     const storedAccount = await db
       .collection("accounts")
       .findOne({ email: credentials.email });
@@ -108,6 +133,16 @@ test("MongoDB API: authentication, ingestion, queue transactions, results, appro
     assert.equal(secondSignup.status, 201);
     cookie = secondSignup.headers.get("set-cookie").split(";")[0];
     assert.equal((await request(`/projects/${privateId}`)).status, 404);
+    assert.equal(
+      (
+        await request(`/projects/${privateId}/recommendations`, {
+          method: "POST",
+          body: { weights: assessmentWeights },
+        })
+      ).status,
+      404,
+    );
+
     assert.deepEqual(await (await request("/projects")).json(), []);
     assert.equal(
       (

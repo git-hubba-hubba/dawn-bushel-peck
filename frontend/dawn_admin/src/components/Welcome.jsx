@@ -33,7 +33,7 @@ function Tool({ kind }) {
     </svg>
   );
 }
-export function Welcome({ workspace, onExplore }) {
+export function Welcome({ workspace, onExplore, onDemo }) {
   const [mode, setMode] = useState(""),
     [email, setEmail] = useState(""),
     [password, setPassword] = useState(""),
@@ -114,12 +114,16 @@ export function Welcome({ workspace, onExplore }) {
           <p className="welcome-overline">YOUR NEXT CHAPTER STARTS HERE</p>
           <h1>Give your idea a new dawn.</h1>
           <p>
-            One workflow. Seven ways to bring it to life.
+            Your idea. Seven structures. A clearer way forward.
             <br />
-            Build with an agent ecosystem, follow every handoff, and find your
-            best path to production.
+            Find the agent ecosystem that fits your idea. Compare how each
+            structure works, understand the trade-offs, and choose your next
+            step.
           </p>
           <div className="welcome-ctas">
+            <button className="welcome-link" onClick={onDemo}>
+              Demo_Dawn <span aria-hidden="true">▷</span>
+            </button>
             <button className="welcome-primary" onClick={() => open("signup")}>
               Create your workspace <span aria-hidden="true">↗</span>
             </button>
@@ -212,6 +216,9 @@ export function Welcome({ workspace, onExplore }) {
               </button>
             </form>
             <div className="welcome-auth-links">
+              <button className="welcome-link" onClick={onDemo}>
+                Demo_Dawn — try the guided tutorial
+              </button>
               <button
                 className="welcome-link"
                 onClick={() => open(mode === "signup" ? "signin" : "signup")}

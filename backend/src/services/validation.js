@@ -35,6 +35,8 @@ export const reportSchema = z
     decisions: z.array(z.string().max(2000)).max(20),
     risks: z.array(z.string().max(2000)).max(20),
     nextSteps: z.array(z.string().max(2000)).max(20),
+    roadmap: z.lazy(() => roadmapSchema).optional(),
+    missingRequirements: z.array(z.string().max(1000)).max(12).optional(),
     actions: z
       .array(
         z
@@ -99,3 +101,71 @@ export const evaluationJsonSchema = {
   },
   required: ["quality", "purposeFit", "reasoning", "evidence"],
 };
+
+export const roadmapStepSchema = z
+  .object({
+    id: z.string().regex(/^[a-z0-9-]{1,50}$/),
+    title: z.string().min(1).max(180),
+    action: z.string().min(1).max(2000),
+    example: z.string().min(1).max(2000),
+    owner: z.string().min(1).max(180),
+    startDay: z.number().int().min(1).max(3650),
+    endDay: z.number().int().min(1).max(3650),
+    dependsOn: z.array(z.string().max(50)).max(20),
+    acceptance: z.string().min(1).max(2000),
+    sourceEvidence: z.string().min(1).max(2000),
+    assumption: z.string().max(2000),
+  })
+  .strict();
+export const roadmapSchema = z
+  .array(roadmapStepSchema)
+  .max(20)
+  .superRefine((steps, ctx) => {
+    const ids = new Set(steps.map((step) => step.id));
+    if (ids.size !== steps.length)
+      ctx.addIssue({ code: "custom", message: "Duplicate roadmap IDs." });
+    for (const step of steps) {
+      if (step.endDay < step.startDay)
+        ctx.addIssue({ code: "custom", message: "Invalid day range." });
+      for (const dependency of step.dependsOn) {
+        const prior = steps.find((item) => item.id === dependency);
+        if (!prior || prior.endDay >= step.startDay)
+          ctx.addIssue({
+            code: "custom",
+            message: "Dependencies must finish before this task starts.",
+          });
+      }
+    }
+  });
+export const recommendationSchema = z
+  .object({
+    objective: z.string().min(1).max(2000),
+    missingRequirements: z.array(z.string().min(1).max(1000)).max(12),
+    recommendations: z
+      .array(
+        z
+          .object({
+            structureId: z.enum(Object.keys(structureById)),
+            reason: z.string().min(1).max(2000),
+            evidence: z.array(z.string().min(1).max(1000)).min(1).max(4),
+            tradeoff: z.string().min(1).max(2000),
+            firstAction: z.string().min(1).max(2000),
+          })
+          .strict(),
+      )
+      .length(3)
+      .refine(
+        (items) => new Set(items.map((item) => item.structureId)).size === 3,
+      ),
+  })
+  .strict();
+export const recommendationJsonSchema = z.toJSONSchema(recommendationSchema);
+delete recommendationJsonSchema.$schema;
+export const roadmapJsonSchema = z.toJSONSchema(z.array(roadmapStepSchema));
+delete roadmapJsonSchema.$schema;
+outputJsonSchema.properties.roadmap = roadmapJsonSchema;
+outputJsonSchema.properties.missingRequirements = {
+  type: "array",
+  items: { type: "string" },
+};
+outputJsonSchema.required.push("roadmap", "missingRequirements");

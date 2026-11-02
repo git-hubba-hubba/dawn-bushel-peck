@@ -1,3 +1,4 @@
+import { RunResults } from "./Results";
 import { api } from "../hooks/useWorkspace";
 import { useState } from "react";
 export function RunTimeline({ runs, refresh }) {
@@ -48,100 +49,54 @@ export function RunTimeline({ runs, refresh }) {
             <p className="muted">Waiting for an available worker.</p>
           )}
           {run.error && <p className="error">{run.error}</p>}
-          <div className="step-list">
-            {Object.values(run.stepState || {}).map((step) => (
-              <details key={step.id} open={step.status === "running"}>
-                <summary>
-                  <span className="status-dot" />
-                  {step.role}
-                  <span>
-                    {step.status}
-                    {step.durationMs
-                      ? ` · ${(step.durationMs / 1000).toFixed(1)}s`
-                      : ""}
-                  </span>
-                </summary>
-                {step.mandate && <p className="muted">{step.mandate}</p>}
-                {step.dependsOn?.length > 0 && (
-                  <p className="setup-note">
-                    Receives work from: {step.dependsOn.join(", ")}
-                  </p>
-                )}
-                {step.status === "running" && (
-                  <p role="status">Generating deliverable…</p>
-                )}
-                {step.preview && (
-                  <>
+          {run.report && <RunResults run={run} />}
+          <details className="result-activity" open={!run.report}>
+            <summary>
+              {run.report
+                ? "Inspect agent contributions & handoffs"
+                : "Live agent activity"}
+            </summary>
+            <div className="step-list">
+              {Object.values(run.stepState || {}).map((step) => (
+                <details key={step.id} open={step.status === "running"}>
+                  <summary>
+                    <span className="status-dot" />
+                    {step.role}
+                    <span>
+                      {step.status}
+                      {step.durationMs
+                        ? ` · ${(step.durationMs / 1000).toFixed(1)}s`
+                        : ""}
+                    </span>
+                  </summary>
+                  {step.mandate && <p className="muted">{step.mandate}</p>}
+                  {step.dependsOn?.length > 0 && (
                     <p className="setup-note">
-                      Live draft output · unvalidated until the agent completes
+                      Receives work from: {step.dependsOn.join(", ")}
                     </p>
-                    <pre className="live-preview">{step.preview}</pre>
-                  </>
-                )}
-                {step.output && (
-                  <p className="deliverable">{step.output.summary}</p>
-                )}
-                {step.output && (
-                  <p className="deliverable">{step.output.deliverable}</p>
-                )}
-              </details>
-            ))}
-          </div>
-          {run.report && (
-            <>
-              <details className="final-output" open>
-                <summary>Final deliverable</summary>
-                <p className="deliverable">{run.report.deliverable}</p>
-                <h4>Next steps</h4>
-                <ul>
-                  {run.report.nextSteps.map((item, i) => (
-                    <li key={i}>{item}</li>
-                  ))}
-                </ul>
-                <h4>Risks & constraints</h4>
-                <ul>
-                  {run.report.risks.map((item, i) => (
-                    <li key={i}>{item}</li>
-                  ))}
-                </ul>
-              </details>
-              <div className="run-metrics">
-                <span>{(run.metrics.durationMs / 1000).toFixed(1)}s total</span>
-                <span>
-                  {(
-                    run.metrics.inputTokens + run.metrics.outputTokens
-                  ).toLocaleString()}{" "}
-                  tokens
-                </span>
-                <span>{run.metrics.handoffs} handoffs</span>
-                <span>
-                  {run.metrics.costUsd === null
-                    ? "Cost not configured"
-                    : `$${run.metrics.costUsd.toFixed(4)} estimated`}
-                </span>
-              </div>
-              <p className="muted">
-                AI evaluation: quality {run.evaluation.quality}/100 · purpose
-                fit {run.evaluation.purposeFit}/100
-              </p>
-              <p className="evaluation-reason">{run.evaluation.reasoning}</p>
-              {run.actions?.length > 0 && (
-                <p className="setup-note">
-                  {
-                    run.actions.filter(
-                      (action) => action.status === "succeeded",
-                    ).length
-                  }{" "}
-                  workspace actions completed ·{" "}
-                  {
-                    run.actions.filter((action) => action.status === "pending")
-                      .length
-                  }{" "}
-                  proposals pending.
-                </p>
-              )}
-            </>
-          )}
+                  )}
+                  {step.status === "running" && (
+                    <p role="status">Generating deliverable…</p>
+                  )}
+                  {step.preview && (
+                    <>
+                      <p className="setup-note">
+                        Live draft output · unvalidated until the agent
+                        completes
+                      </p>
+                      <pre className="live-preview">{step.preview}</pre>
+                    </>
+                  )}
+                  {step.output && (
+                    <p className="deliverable">{step.output.summary}</p>
+                  )}
+                  {step.output && (
+                    <p className="deliverable">{step.output.deliverable}</p>
+                  )}
+                </details>
+              ))}
+            </div>
+          </details>
         </article>
       ))}
     </section>
