@@ -13,8 +13,9 @@ import {
   cookieOptions,
 } from "./services/auth.js";
 import { apiRoutes } from "./routes/api.js";
+import { assessmentFailure } from "./services/recommendations.js";
 import { RequestError } from "./services/run-store.js";
-export function createApp({ db, client, config }) {
+export function createApp({ db, client, config, providerFactory }) {
   const app = express(),
     verify = passwordVerifier(config.password);
   app.disable("x-powered-by");
@@ -61,11 +62,26 @@ export function createApp({ db, client, config }) {
       await db.collection("sessions").deleteOne({ _id: hashToken(token) });
     res.clearCookie("dawn_session", cookieOptions(config)).status(204).end();
   });
-  app.use("/api", authMiddleware(db), apiRoutes(db, config, client));
+  app.use(
+    "/api",
+    authMiddleware(db),
+    apiRoutes(db, config, client, { providerFactory }),
+  );
   if (config.production) serveFrontend(app);
   app.use((req, res) => res.status(404).json({ error: "Endpoint not found." }));
   app.use((error, req, res, next) => {
     if (res.headersSent) return next(error);
+    if (error.name?.startsWith("Mongo")) {
+      const failure = assessmentFailure(error);
+      console.error("Database request failed:", error.name);
+      return res.status(failure.status).json({
+        error:
+          "MongoDB is unavailable. Check the API database connection, then retry.",
+        code: failure.code,
+        title: failure.title,
+        nextStep: failure.nextStep,
+      });
+    }
     if (error instanceof RequestError)
       return res.status(error.status).json({ error: error.message });
     if (error.name === "ZodError")

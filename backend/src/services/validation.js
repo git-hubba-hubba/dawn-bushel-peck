@@ -17,6 +17,13 @@ export const projectSchema = z
     content: z.string().trim().min(1).max(80000),
   })
   .strict();
+export const projectUpdateSchema = z
+  .object({
+    name: projectSchema.shape.name.optional(),
+    selectedStructure: z.enum(Object.keys(structureById)).optional(),
+  })
+  .strict()
+  .refine((data) => Object.keys(data).length > 0);
 export const runSchema = z
   .object({
     projectId: z.string().regex(/^[a-f0-9]{24}$/),

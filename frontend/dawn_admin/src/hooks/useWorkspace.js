@@ -11,27 +11,41 @@ export async function api(path, options = {}) {
           : { "Content-Type": "application/json", ...options.headers },
     });
   } catch {
-    throw new Error(
-      "The backend is unavailable. Start the API and configure MongoDB.",
-    );
+    throw Object.assign(new Error("Dawn could not reach the API server."), {
+      code: "api_unreachable",
+      title: "API connection interrupted",
+      nextStep:
+        "Check your connection and ask the server operator to verify that the API is running, then retry. This does not confirm an AI credit shortage.",
+    });
   }
   if (response.status === 204) return null;
   let data;
   try {
     data = await response.json();
   } catch {
-    throw new Error(
-      "The backend is unavailable. Start the API and configure MongoDB.",
+    throw Object.assign(
+      new Error(
+        "The API returned an unexpected response instead of valid data.",
+      ),
+      {
+        code: "api_invalid_response",
+        title: "API response could not be read",
+        nextStep:
+          "Ask the server operator to check the API server and proxy, then retry.",
+      },
     );
   }
   if (!response.ok)
     throw Object.assign(new Error(data.error || "Request failed."), {
       status: response.status,
       code: data.code,
+      title: data.title,
+      nextStep: data.nextStep,
     });
   return data;
 }
 export function useWorkspace() {
+  const [assessmentHealth, setAssessmentHealth] = useState(null);
   const [status, setStatus] = useState(null),
     [projects, setProjects] = useState([]),
     [runs, setRuns] = useState([]),
@@ -54,15 +68,19 @@ export function useWorkspace() {
       setArtifacts(nextArtifacts);
       setAuthenticated(true);
       setError("");
+      return true;
     } catch (e) {
-      setError(e.message);
+      setError(e.status === 401 ? "" : e.message);
+      setStatus(null);
       if (e.status === 401) {
         setAuthenticated(false);
         setStatus(null);
         setProjects([]);
         setRuns([]);
         setArtifacts([]);
+        setAssessmentHealth(null);
       }
+      return false;
     }
   }, []);
   useEffect(() => {
@@ -104,18 +122,25 @@ export function useWorkspace() {
       method: "POST",
       body: JSON.stringify({ password }),
     });
-    await refresh();
+    if (!(await refresh()))
+      throw new Error(
+        "Signed in, but workspace data could not be loaded. Check the API connection and retry.",
+      );
   }
   async function authenticate(mode, credentials) {
     await api(`/auth/${mode}`, {
       method: "POST",
       body: JSON.stringify(credentials),
     });
-    await refresh();
+    if (!(await refresh()))
+      throw new Error(
+        "Signed in, but workspace data could not be loaded. Check the API connection and retry.",
+      );
   }
   async function logout() {
     await api("/auth/logout", { method: "POST" });
     setAuthenticated(false);
+    setAssessmentHealth(null);
     setStatus(null);
     setProjects([]);
     setRuns([]);
@@ -132,6 +157,8 @@ export function useWorkspace() {
     return result;
   }
   return {
+    assessmentHealth,
+    reportAssessment: setAssessmentHealth,
     status,
     projects,
     runs,

@@ -15,66 +15,7 @@ export function evidenceSources(content) {
   }
   return sources;
 }
-export function assessmentFailure(error) {
-  if ([401, 403].includes(error.status))
-    return {
-      status: 503,
-      code: "provider_access",
-      error:
-        "The AI provider rejected access. Check the server's API key and project/model permissions, then restart the API.",
-    };
-  if (error.status === 429)
-    return {
-      status: 503,
-      code: "provider_limit",
-      error:
-        "The AI provider reported a quota or rate limit. Check project usage/billing or try again later.",
-    };
-  if (error.status === 404)
-    return {
-      status: 503,
-      code: "provider_model",
-      error:
-        "The configured AI model is unavailable. Check OPENAI_MODEL and your project's model access.",
-    };
-  if (error.status === 400)
-    return {
-      status: 502,
-      code: "provider_request",
-      error:
-        "The AI provider rejected the assessment request or structured-output configuration. Check the configured model's supported settings.",
-    };
-  if (error.code === "ungrounded_evidence")
-    return {
-      status: 502,
-      code: error.code,
-      error:
-        "The assessment referenced an unknown source passage. No recommendation was saved. Please retry.",
-    };
-  if (["invalid_output", "incomplete_response"].includes(error.code))
-    return {
-      status: 502,
-      code: error.code,
-      error:
-        "The provider did not return a complete valid assessment. No recommendation was saved. Please retry.",
-    };
-  if (
-    ["APIConnectionError", "APIConnectionTimeoutError"].includes(error.name) ||
-    error.status >= 500
-  )
-    return {
-      status: 503,
-      code: "provider_unavailable",
-      error:
-        "The AI provider is unavailable or timed out. Please try again later.",
-    };
-  return {
-    status: 500,
-    code: "assessment_failed",
-    error:
-      "The assessment could not be saved or completed. Check the API server's database connection and provider configuration.",
-  };
-}
+export { assessmentFailure } from "./assessment-failure.js";
 export async function recommendStructures({ content, weights, provider }) {
   const sources = evidenceSources(content);
   const result = await provider({

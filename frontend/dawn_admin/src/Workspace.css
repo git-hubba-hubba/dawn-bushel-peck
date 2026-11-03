@@ -673,3 +673,35 @@
     padding: 22px 20px;
   }
 }
+
+.app-shell button:disabled {
+  background: #e4e1db;
+  color: #67645e;
+  box-shadow: none;
+  cursor: not-allowed;
+  opacity: 1;
+}
+.status-dot.status-warning {
+  background: #b45233;
+}
+.account-dialog {
+  width: min(560px, calc(100vw - 32px));
+  max-height: 90vh;
+  overflow: auto;
+  border: 1px solid #d9cdbd;
+  border-radius: 16px;
+  padding: 20px;
+  background: #faf6ed;
+}
+.account-dialog::backdrop {
+  background: rgb(25 28 25 / 55%);
+}
+.account-dialog .welcome-auth {
+  margin: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.status-dot.status-unknown {
+  background: #89877f;
+}

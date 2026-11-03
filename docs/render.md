@@ -72,6 +72,7 @@ Give it the same `NODE_ENV`, `APP_ORIGIN`, `MONGODB_URI`, `MONGODB_DB`, `WORKSPA
 - **Frontend build missing:** use `npm run build:render` from the repository root before `npm start`.
 - **Cannot resolve `shared/`:** leave the Render root directory blank and deploy the whole repository.
 - **403 on sign-in or saves:** correct `APP_ORIGIN` to the exact URL used in the browser and redeploy.
+- **`X-Forwarded-For` header is set but Express `trust proxy` is false:** in the Render **web service → Environment**, set `TRUST_PROXY_HOPS=1` for the direct Render proxy setup, then save and redeploy/restart the service. A missing value or `0` disables proxy trust. Editing your local `backend/.env` does not update Render. The application already applies this setting before rate limiting; no code change is needed. If you added a separate proxy/CDN, verify the hop count for that topology. Keep proxy trust bounded; do not use unrestricted `true` or disable the rate-limit validation.
 - **429 for unrelated visitors:** verify the proxy hop count and topology. Do not set Express proxy trust to unrestricted `true`.
 - **Runs stay queued:** deploy/start the worker with the same database and provider configuration.
 - **Provider errors:** inspect the UI's safe error category and check account access/model settings in the provider dashboard. Do not share keys or full environment contents in chat.

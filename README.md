@@ -129,3 +129,13 @@ The demo also includes an animated virtual walkthrough with four captioned scene
 ## Render deployment
 
 See [the Render deployment guide](docs/render.md). From the repository root, use `npm run build:render` as the web service build command and `npm start` as its start command. Production Express serves the built frontend and API on the same origin. A separate background worker (`npm run worker`) processes executions. Add secrets only in Render's environment settings; review service costs before provisioning.
+
+## Assessment recovery and workspace status
+
+The sidebar reports a successful MongoDB ping only after a complete workspace refresh. A failed refresh clears that status. An API key being present is labeled as unverified; the latest assessment success or failure is shown separately and retained across polling during the session. No paid provider health probes run in the background.
+
+Assessment failures appear in the recommendation step with sanitized error categories and an explicit retry. Database failures, provider access/quota/model problems, invalid outputs, and provider response failures have distinct guidance. A failed assessment is never replaced with demo results. The live execution section shows queued/running/failed states and only displays a generated roadmap when a real run returns one. A separately running worker remains required.
+
+Studio account sign-in opens in a dialog and preserves the idea editor. Disabled assessment and execution controls show the blocking reason beside the action. Use **Save workflow name** to rename an existing workflow without changing its source or prior results. Choosing a recommended ecosystem saves the choice to the owned workflow, confirms it visibly, and opens the single-ecosystem execution control. The choice itself does not start paid execution. Editing source content continues to create a new workflow rather than changing previous execution sources.
+
+Assessment failure panels include a plain-language cause and next action. Explicit provider codes distinguish exhausted credits, project/organization spending caps, provider-assigned usage limits, and temporary rate limits. An unspecified quota error does not establish that credits are exhausted. Raw provider messages and credentials are never shown.

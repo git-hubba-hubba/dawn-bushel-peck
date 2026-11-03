@@ -10,6 +10,7 @@ import multer from "multer";
 import { structures } from "../../../shared/structures.js";
 import {
   projectSchema,
+  projectUpdateSchema,
   runSchema,
   weightsSchema,
 } from "../services/validation.js";
@@ -24,14 +25,20 @@ import { runStore } from "../services/run-store.js";
 const assessing = new Set();
 const objectId = (value) =>
   /^[a-f0-9]{24}$/.test(value || "") ? new ObjectId(value) : null;
-export function apiRoutes(db, config, client) {
+export function apiRoutes(
+  db,
+  config,
+  client,
+  { providerFactory = createProvider } = {},
+) {
   const router = Router(),
     store = runStore(db, client);
   const upload = multer({
     storage: multer.memoryStorage(),
     limits: { fileSize: 5 * 1024 * 1024, files: 1, fields: 0 },
   });
-  router.get("/status", async (req, res) =>
+  router.get("/status", async (req, res) => {
+    await db.command({ ping: 1 }, { timeoutMS: 3000 });
     res.json({
       providerConfigured: Boolean(config.key),
       model: config.model,
@@ -40,8 +47,8 @@ export function apiRoutes(db, config, client) {
         name: tool,
         ...actionPolicy(tool),
       })),
-    }),
-  );
+    });
+  });
   router.get("/artifacts", async (req, res) =>
     res.json(
       await db
@@ -72,6 +79,18 @@ export function apiRoutes(db, config, client) {
       };
     const result = await db.collection("projects").insertOne(project);
     res.status(201).json({ ...project, _id: result.insertedId });
+  });
+  router.patch("/projects/:id", async (req, res) => {
+    const data = projectUpdateSchema.parse(req.body);
+    const result = await db
+      .collection("projects")
+      .updateOne(
+        { _id: objectId(req.params.id), workspaceId: req.workspaceId },
+        { $set: data },
+      );
+    if (!result.matchedCount)
+      return res.status(404).json({ error: "Project not found." });
+    res.json(data);
   });
   router.post("/documents", upload.single("file"), async (req, res) => {
     if (!req.file) return res.status(400).json({ error: "Choose a document." });
@@ -105,7 +124,18 @@ export function apiRoutes(db, config, client) {
   });
   router.post(
     "/projects/:id/recommendations",
-    rateLimit({ windowMs: 15 * 60000, limit: 5 }),
+    rateLimit({
+      windowMs: 15 * 60000,
+      limit: 5,
+      message: {
+        code: "assessment_request_limit",
+        title: "Assessment request limit reached",
+        error:
+          "This connection has reached Dawn's assessment request limit for the current 15-minute window.",
+        nextStep:
+          "Wait for the request window to reset before retrying. This is an application limit, not evidence that AI credits are exhausted.",
+      },
+    }),
     async (req, res) => {
       const weights = weightsSchema.parse(req.body?.weights);
       const project = await db.collection("projects").findOne({
@@ -122,19 +152,28 @@ export function apiRoutes(db, config, client) {
         return res.json(project.recommendations);
       if (!config.key)
         return res.status(503).json({
-          error: "Configure the AI provider to assess this workflow.",
+          code: "provider_not_configured",
+          title: "AI assessment is not configured",
+          error: "The server does not have AI provider credentials configured.",
+          nextStep:
+            "Ask the server operator to configure the provider credentials and restart the API before retrying.",
         });
       if (assessing.has(req.workspaceId))
         return res.status(409).json({
-          error: "A workflow assessment is already running. Please wait.",
+          code: "assessment_busy",
+          title: "Another assessment is already running",
+          error: "Dawn is already assessing a workflow in this workspace.",
+          nextStep: "Wait for the current assessment to finish, then retry.",
         });
       assessing.add(req.workspaceId);
+      let phase = "provider";
       try {
         const result = await recommendStructures({
           content: project.content,
           weights,
-          provider: createProvider(config),
+          provider: providerFactory(config),
         });
+        phase = "persistence";
         const updated = await db
           .collection("projects")
           .updateOne(
@@ -147,11 +186,16 @@ export function apiRoutes(db, config, client) {
             .json({ error: "Source workflow was removed." });
         res.json(result);
       } catch (error) {
-        const failure = assessmentFailure(error);
+        const failure = assessmentFailure(error, phase);
         console.error("Workflow assessment failed:", failure.code);
         res
           .status(failure.status)
-          .json({ error: failure.error, code: failure.code });
+          .json({
+            error: failure.error,
+            code: failure.code,
+            title: failure.title,
+            nextStep: failure.nextStep,
+          });
       } finally {
         assessing.delete(req.workspaceId);
       }

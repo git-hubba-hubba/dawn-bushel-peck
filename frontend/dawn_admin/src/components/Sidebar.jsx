@@ -26,12 +26,22 @@ export function Sidebar({ view, setView, workspace }) {
         </button>
       ))}
       <div className="sidebar-bottom">
-        <span className="status-dot" />
-        {workspace.status ? "MongoDB connected" : "Local workspace"}
+        <span
+          className={`status-dot ${workspace.error || workspace.assessmentHealth?.ok === false ? "status-warning" : !workspace.status ? "status-unknown" : ""}`}
+        />
+        {workspace.error
+          ? "Workspace connection interrupted"
+          : workspace.status?.database === "connected"
+            ? "MongoDB ping succeeded"
+            : "Database not verified"}
         <small>
-          {workspace.status?.providerConfigured
-            ? "AI execution configured"
-            : "Provider connection pending"}
+          {workspace.assessmentHealth?.ok === false
+            ? "Latest assessment failed"
+            : workspace.assessmentHealth?.ok === true
+              ? "Latest assessment succeeded"
+              : workspace.status?.providerConfigured
+                ? "AI credentials present · unverified"
+                : "AI configuration pending"}
         </small>
         {workspace.authenticated && (
           <button className="logout-button" onClick={workspace.logout}>

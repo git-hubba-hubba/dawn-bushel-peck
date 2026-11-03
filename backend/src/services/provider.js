@@ -7,12 +7,14 @@ import {
   outputJsonSchema,
   evaluationJsonSchema,
 } from "./validation.js";
-export function createProvider(config) {
-  const client = new OpenAI({
+export function createProvider(
+  config,
+  client = new OpenAI({
     apiKey: config.key,
     timeout: 180000,
     maxRetries: 1,
-  });
+  }),
+) {
   return async ({
     instructions,
     input,
@@ -65,6 +67,10 @@ export function createProvider(config) {
       }
     }
     const result = await stream.finalResponse();
+    if (result.error)
+      throw Object.assign(new Error("Provider response failed."), {
+        code: result.error.code,
+      });
     if (result.status !== "completed" || !result.output_text)
       throw Object.assign(
         new Error("Provider did not complete a structured response."),

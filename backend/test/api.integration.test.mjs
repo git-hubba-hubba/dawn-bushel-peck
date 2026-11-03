@@ -29,7 +29,35 @@ test("MongoDB API: authentication, ingestion, queue transactions, results, appro
     close = connection.close;
     const { db, client } = connection;
     await db.collection("limits").insertOne({ _id: "owner", active: 0 });
-    const app = createApp({ db, client, config });
+    let providerFails = true;
+    const app = createApp({
+      db,
+      client,
+      config,
+      providerFactory: () => async () => {
+        if (providerFails)
+          throw Object.assign(new Error("private provider details"), {
+            status: 401,
+          });
+        return {
+          model: "test",
+          usage: {},
+          output: {
+            objective: "Private pilot",
+            missingRequirements: [],
+            recommendations: ["agile", "flat", "functional"].map(
+              (structureId) => ({
+                structureId,
+                reason: "Pilot fit",
+                evidence: ["S1"],
+                tradeoff: "Confirm capacity",
+                firstAction: "Define intake",
+              }),
+            ),
+          },
+        };
+      },
+    });
     server = app.listen(0, "127.0.0.1");
     await new Promise((resolve) => server.once("listening", resolve));
     const url = `http://127.0.0.1:${server.address().port}/api`;
@@ -92,20 +120,18 @@ test("MongoDB API: authentication, ingestion, queue transactions, results, appro
     assert.equal(privateProject.status, 201);
     const privateId = (await privateProject.json())._id;
     const assessmentWeights = { quality: 50, speed: 50, efficiency: 50 };
-    await db
-      .collection("projects")
-      .updateOne(
-        { _id: new ObjectId(privateId) },
-        {
-          $set: {
-            recommendations: {
-              objective: "Private repair pilot",
-              weights: assessmentWeights,
-              recommendations: [],
-            },
+    await db.collection("projects").updateOne(
+      { _id: new ObjectId(privateId) },
+      {
+        $set: {
+          recommendations: {
+            objective: "Private repair pilot",
+            weights: assessmentWeights,
+            recommendations: [],
           },
         },
-      );
+      },
+    );
     const cachedAssessment = await request(
       `/projects/${privateId}/recommendations`,
       { method: "POST", body: { weights: assessmentWeights } },
@@ -115,6 +141,65 @@ test("MongoDB API: authentication, ingestion, queue transactions, results, appro
       (await cachedAssessment.json()).objective,
       "Private repair pilot",
     );
+
+    assert.equal(
+      (await (await request("/status")).json()).database,
+      "connected",
+    );
+    await db
+      .collection("projects")
+      .updateOne(
+        { _id: new ObjectId(privateId) },
+        { $unset: { recommendations: "" } },
+      );
+    const failedAssessment = await request(
+      `/projects/${privateId}/recommendations`,
+      { method: "POST", body: { weights: assessmentWeights } },
+    );
+    assert.equal(failedAssessment.status, 503);
+    const failure = await failedAssessment.json();
+    assert.equal(failure.code, "provider_access");
+    assert.match(failure.title, /provider access rejected/);
+    assert.match(failure.nextStep, /API key/);
+    assert.ok(!failure.error.includes("private provider details"));
+    assert.equal(
+      (
+        await db
+          .collection("projects")
+          .findOne({ _id: new ObjectId(privateId) })
+      ).recommendations,
+      undefined,
+    );
+    providerFails = false;
+    const retriedAssessment = await request(
+      `/projects/${privateId}/recommendations`,
+      { method: "POST", body: { weights: assessmentWeights } },
+    );
+    assert.equal(retriedAssessment.status, 200);
+    assert.equal((await retriedAssessment.json()).recommendations.length, 3);
+    const renamed = await request(`/projects/${privateId}`, {
+      method: "PATCH",
+      body: { name: "Repair pilot", selectedStructure: "agile" },
+    });
+    assert.equal(renamed.status, 200);
+    const updatedProject = await (
+      await request(`/projects/${privateId}`)
+    ).json();
+    assert.equal(updatedProject.name, "Repair pilot");
+    assert.equal(updatedProject.selectedStructure, "agile");
+    assert.equal(updatedProject.content, "Private source");
+    assert.equal(updatedProject.recommendations.recommendations.length, 3);
+    for (const body of [
+      { name: " " },
+      { selectedStructure: "unknown" },
+      { workspaceId: "owner" },
+    ]) {
+      assert.equal(
+        (await request(`/projects/${privateId}`, { method: "PATCH", body }))
+          .status,
+        400,
+      );
+    }
 
     const storedAccount = await db
       .collection("accounts")
@@ -133,6 +218,15 @@ test("MongoDB API: authentication, ingestion, queue transactions, results, appro
     assert.equal(secondSignup.status, 201);
     cookie = secondSignup.headers.get("set-cookie").split(";")[0];
     assert.equal((await request(`/projects/${privateId}`)).status, 404);
+    assert.equal(
+      (
+        await request(`/projects/${privateId}`, {
+          method: "PATCH",
+          body: { name: "Stolen name" },
+        })
+      ).status,
+      404,
+    );
     assert.equal(
       (
         await request(`/projects/${privateId}/recommendations`, {

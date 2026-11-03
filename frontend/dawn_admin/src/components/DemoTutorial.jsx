@@ -240,6 +240,7 @@ export function DemoTutorial({ onExit }) {
               <span className="eyebrow">SEVEN DISTINCT EXECUTION PATTERNS</span>
               <h2>Choose how this workflow moves</h2>
               <WorkflowRecommendations
+                selected={selected}
                 illustrative
                 result={{
                   objective:

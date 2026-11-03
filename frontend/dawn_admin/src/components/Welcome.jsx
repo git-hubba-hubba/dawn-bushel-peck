@@ -1,3 +1,4 @@
+import { AccountForm } from "./AccountForm";
 import { useRef, useState } from "react";
 import "./Welcome.css";
 function Tool({ kind }) {
@@ -34,33 +35,15 @@ function Tool({ kind }) {
   );
 }
 export function Welcome({ workspace, onExplore, onDemo }) {
-  const [mode, setMode] = useState(""),
-    [email, setEmail] = useState(""),
-    [password, setPassword] = useState(""),
-    [busy, setBusy] = useState(false),
-    [error, setError] = useState("");
+  const [mode, setMode] = useState("");
   const form = useRef(null);
   function open(next) {
     setMode(next);
-    setError("");
-    setPassword("");
-    setTimeout(() => {
-      form.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-    }, 0);
-  }
-  async function submit(event) {
-    event.preventDefault();
-    setBusy(true);
-    setError("");
-    try {
-      if (mode === "owner") await workspace.login(password);
-      else await workspace.authenticate(mode, { email, password });
-      setPassword("");
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setBusy(false);
-    }
+    setTimeout(
+      () =>
+        form.current?.scrollIntoView({ behavior: "smooth", block: "center" }),
+      0,
+    );
   }
   return (
     <div className="welcome-page">
@@ -136,104 +119,15 @@ export function Welcome({ workspace, onExplore, onDemo }) {
           </p>
         </section>
         {mode && (
-          <section
-            className="welcome-auth"
-            ref={form}
-            aria-labelledby="auth-title"
-          >
-            <div className="welcome-auth-heading">
-              <div>
-                <p className="welcome-overline">LET’S GET STARTED</p>
-                <h2 id="auth-title">
-                  {mode === "signup"
-                    ? "Create your private workspace"
-                    : mode === "owner"
-                      ? "Open the owner workspace"
-                      : "Welcome back"}
-                </h2>
-              </div>
-              <button
-                className="welcome-link"
-                onClick={() => {
-                  setMode("");
-                  setPassword("");
-                }}
-                aria-label="Close account form"
-              >
-                ✕
-              </button>
-            </div>
-            <form onSubmit={submit}>
-              {mode !== "owner" && (
-                <>
-                  <label htmlFor="account-email">Email address</label>
-                  <input
-                    id="account-email"
-                    type="email"
-                    autoComplete="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    maxLength={254}
-                    required
-                    disabled={busy}
-                  />
-                </>
-              )}
-              <label htmlFor="account-password">
-                {mode === "owner" ? "Workspace password" : "Password"}
-              </label>
-              <input
-                id="account-password"
-                type="password"
-                autoComplete={
-                  mode === "signup" ? "new-password" : "current-password"
-                }
-                minLength={mode === "owner" ? undefined : 16}
-                maxLength={256}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                disabled={busy}
-              />
-              {mode === "signup" && (
-                <p className="welcome-auth-note">
-                  Use at least 16 characters. Your workflows are private to your
-                  account.
-                </p>
-              )}
-              {error && (
-                <p className="welcome-error" role="alert">
-                  {error}
-                </p>
-              )}
-              <button className="welcome-primary" disabled={busy}>
-                {busy
-                  ? "Connecting…"
-                  : mode === "signup"
-                    ? "Create account & enter workspace"
-                    : "Sign in"}
-                <span aria-hidden="true">→</span>
-              </button>
-            </form>
-            <div className="welcome-auth-links">
-              <button className="welcome-link" onClick={onDemo}>
-                Demo_Dawn — try the guided tutorial
-              </button>
-              <button
-                className="welcome-link"
-                onClick={() => open(mode === "signup" ? "signin" : "signup")}
-              >
-                {mode === "signup"
-                  ? "Already have an account? Sign in"
-                  : "New here? Create an account"}
-              </button>
-              {mode !== "owner" && (
-                <button className="welcome-link" onClick={() => open("owner")}>
-                  Existing owner workspace
-                </button>
-              )}
-            </div>
-          </section>
+          <div ref={form}>
+            <AccountForm
+              key={mode}
+              workspace={workspace}
+              initialMode={mode}
+              onClose={() => setMode("")}
+              onDemo={onDemo}
+            />
+          </div>
         )}
       </main>
       <footer className="welcome-footer">

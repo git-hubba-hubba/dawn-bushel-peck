@@ -151,3 +151,136 @@ test("assessment errors distinguish provider access from grounding without leaki
     "assessment_failed",
   );
 });
+
+test("assessment errors identify database and stream failures without disclosing raw details", async () => {
+  const { assessmentFailure } =
+    await import("../src/services/recommendations.js");
+  for (const error of [
+    { name: "MongoServerSelectionError" },
+    { name: "MongoNetworkError" },
+  ]) {
+    assert.equal(assessmentFailure(error).code, "database_unavailable");
+  }
+  assert.equal(
+    assessmentFailure(new Error("private URI"), "persistence").code,
+    "database_unavailable",
+  );
+  assert.equal(
+    assessmentFailure({ code: "insufficient_quota" }).code,
+    "provider_quota",
+  );
+  assert.equal(
+    assessmentFailure({ code: "model_not_found" }).code,
+    "provider_model",
+  );
+});
+
+test("provider preserves streamed failure codes so retry guidance identifies the service fault", async () => {
+  const { createProvider } = await import("../src/services/provider.js");
+  const { assessmentFailure } =
+    await import("../src/services/recommendations.js");
+  const provider = createProvider(
+    {},
+    {
+      responses: {
+        stream: () => ({
+          async *[Symbol.asyncIterator]() {},
+          async finalResponse() {
+            return {
+              status: "failed",
+              error: {
+                code: "server_error",
+                message: "private provider details",
+              },
+            };
+          },
+        }),
+      },
+    },
+  );
+  await assert.rejects(
+    provider({ instructions: "test", input: "test" }),
+    (error) => {
+      assert.equal(error.code, "server_error");
+      assert.equal(assessmentFailure(error).code, "provider_unavailable");
+      assert.ok(!error.message.includes("private provider details"));
+      return true;
+    },
+  );
+});
+
+test("assessment guidance distinguishes credit, spending, usage and temporary rate limits", async () => {
+  const { assessmentFailure } =
+    await import("../src/services/recommendations.js");
+  const cases = [
+    [
+      "credit_balance_exhausted",
+      "provider_credits_empty",
+      /no credits remaining/,
+      /add credits/,
+    ],
+    [
+      "project_spend_limit_exceeded",
+      "provider_spend_limit",
+      /project/,
+      /project spending limit/,
+    ],
+    [
+      "organization_spend_limit_exceeded",
+      "provider_spend_limit",
+      /organization/,
+      /organization spending limit/,
+    ],
+    [
+      "organization_usage_limit_exceeded",
+      "provider_usage_limit",
+      /provider-assigned usage limit/,
+      /higher approved usage limit/,
+    ],
+    [
+      "insufficient_quota",
+      "provider_quota",
+      /does not identify which one/,
+      /billing, remaining credits, and usage limits/,
+    ],
+    [
+      "rate_limit_exceeded",
+      "provider_rate_limit",
+      /temporarily limiting/,
+      /Wait before retrying/,
+    ],
+    [
+      "slow_down",
+      "provider_rate_limit",
+      /temporarily limiting/,
+      /Wait before retrying/,
+    ],
+  ];
+  for (const [code, expected, reason, action] of cases) {
+    for (const shape of [{ code }, { error: { code } }]) {
+      const result = assessmentFailure({
+        status: 429,
+        message: "private source and key",
+        ...shape,
+      });
+      assert.equal(result.code, expected);
+      assert.match(result.error, reason);
+      assert.match(result.nextStep, action);
+      assert.ok(result.title);
+      assert.ok(!JSON.stringify(result).includes("private source and key"));
+    }
+  }
+  assert.equal(
+    assessmentFailure({ status: 429, type: "insufficient_quota" }).code,
+    "provider_quota",
+  );
+  assert.match(assessmentFailure({ status: 429 }).error, /cannot tell/);
+  assert.match(
+    assessmentFailure(new Error("secret")).error,
+    /does not confirm/,
+  );
+  assert.equal(
+    assessmentFailure({ name: "APIConnectionTimeoutError" }).code,
+    "provider_timeout",
+  );
+});

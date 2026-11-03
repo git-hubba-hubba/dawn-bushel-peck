@@ -7,11 +7,7 @@ export function useIdeaAssessment(options) {
     pending = useRef(false),
     attempted = useRef(""),
     mounted = useRef(false);
-  const key = JSON.stringify([
-    options.content.trim(),
-    options.name.trim(),
-    options.weights,
-  ]);
+  const key = JSON.stringify([options.content.trim(), options.weights]);
   useEffect(() => {
     current.current = { ...options, key };
   });
@@ -60,15 +56,34 @@ export function useIdeaAssessment(options) {
         method: "POST",
         body: JSON.stringify({ weights: source.weights }),
       });
-      if (stillCurrent()) current.current.onRecommendations(result);
+      if (stillCurrent()) {
+        current.current.onRecommendations(result);
+        current.current.workspace.reportAssessment({ ok: true });
+      }
       if (mounted.current) await current.current.workspace.refresh();
     } catch (error) {
-      if (stillCurrent())
+      if (stillCurrent()) {
+        current.current.workspace.reportAssessment({
+          ok: false,
+          code: error.code || phase,
+        });
         setFailure({
           key: source.key,
           message: error.message,
+          title:
+            error.title ||
+            (phase === "workflow_save"
+              ? "Your idea could not be saved"
+              : "Assessment failed: cause not confirmed"),
+          nextStep:
+            error.nextStep ||
+            (phase === "workflow_save"
+              ? "Check the workspace connection and retry saving your idea. AI assessment starts only after the idea is saved."
+              : "Retry once. If it fails again, ask the server operator to investigate this error category."),
           code: error.code || (error.status === 429 ? "request_limit" : phase),
         });
+        await current.current.workspace.refresh();
+      }
     } finally {
       pending.current = false;
       if (mounted.current) setAssessing(false);

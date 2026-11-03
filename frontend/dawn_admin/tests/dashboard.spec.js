@@ -50,7 +50,7 @@ test("comparisons and analytics show honest empty states", async ({ page }) => {
 test("unconfigured execution is gated and input remains editable", async ({
   page,
 }) => {
-  await page.getByLabel("Concept name").fill("Neighborhood repair service");
+  await page.getByLabel("Workflow name").fill("Neighborhood repair service");
   await page
     .getByLabel("Or write your idea")
     .fill("A repair service that connects neighbors.");

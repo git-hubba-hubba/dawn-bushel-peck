@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { AccountForm } from "./components/AccountForm";
+import { useEffect, useRef, useState } from "react";
 import { IdeaJourney } from "./components/IdeaJourney";
 import { structureById } from "../../../shared/structures";
 import { useWorkspace } from "./hooks/useWorkspace";
-import { WorkflowRecommendations } from "./components/WorkflowRecommendations";
 import { DemoTutorial } from "./components/DemoTutorial";
 import { Welcome } from "./components/Welcome";
 import { Sidebar } from "./components/Sidebar";
@@ -15,6 +15,12 @@ import { WorkspaceArtifacts } from "./components/WorkspaceArtifacts";
 import "./App.css";
 import "./Workspace.css";
 export default function App() {
+  const [authOpen, setAuthOpen] = useState(false);
+  const authDialog = useRef(null);
+  useEffect(() => {
+    if (authOpen) authDialog.current?.showModal();
+    else authDialog.current?.close();
+  }, [authOpen]);
   const [recommendations, setRecommendations] = useState(null);
   const [demo, setDemo] = useState(false);
   const [exploring, setExploring] = useState(false);
@@ -56,6 +62,19 @@ export default function App() {
     );
   return (
     <div className="app-shell">
+      <dialog
+        ref={authDialog}
+        className="account-dialog"
+        aria-label="Sign in to your workspace"
+        onCancel={() => setAuthOpen(false)}
+      >
+        {authOpen && (
+          <AccountForm
+            workspace={workspace}
+            onClose={() => setAuthOpen(false)}
+          />
+        )}
+      </dialog>
       <Sidebar
         selected={selected}
         view={view}
@@ -80,10 +99,7 @@ export default function App() {
           {workspace.authenticated ? (
             <span className="avatar">D</span>
           ) : (
-            <button
-              className="welcome-back"
-              onClick={() => setExploring(false)}
-            >
+            <button className="welcome-back" onClick={() => setAuthOpen(true)}>
               Create account / Sign in
             </button>
           )}
@@ -139,6 +155,9 @@ export default function App() {
           {workspace.error && (
             <div className="connection-notice" role="status">
               {workspace.error}
+              <button className="secondary-button" onClick={workspace.refresh}>
+                Check connection again
+              </button>
             </div>
           )}
           {view === "analytics" ? (
@@ -160,14 +179,10 @@ export default function App() {
                 setProjectId(id);
                 setRecommendations(null);
               }}
+              onSelect={onSelect}
               assessmentResult={recommendations}
               onRecommendations={setRecommendations}
-            >
-              <WorkflowRecommendations
-                result={recommendations}
-                onSelect={onSelect}
-              />
-            </ContentWorkspace>
+            />
             <EcosystemCarousel selected={selected} onSelect={setSelected} />
             <RunTimeline runs={selectedRuns} refresh={workspace.refresh} />
             <details className="panel">

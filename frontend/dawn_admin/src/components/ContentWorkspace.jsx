@@ -1,3 +1,4 @@
+import { WorkflowRecommendations } from "./WorkflowRecommendations";
 import { ComparisonPriorities } from "./ComparisonPriorities";
 import { EvidenceGuide } from "./EvidenceGuide";
 import { useId, useState } from "react";
@@ -12,12 +13,15 @@ export function ContentWorkspace({
   onProject,
   onRecommendations,
   assessmentResult,
-  children,
+  onSelect,
 }) {
   const id = useId(),
     [content, setContent] = useState(""),
     [name, setName] = useState(""),
     [projectId, setProjectId] = useState(""),
+    [chosenStructure, setChosenStructure] = useState(""),
+    [savedName, setSavedName] = useState(""),
+    [notice, setNotice] = useState(""),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
     [password, setPassword] = useState("");
@@ -32,6 +36,47 @@ export function ContentWorkspace({
     onRecommendations,
     busy,
   });
+  const blockedReason = !workspace.authenticated
+    ? "Sign in to save your idea and use AI assessment or execution."
+    : workspace.error ||
+      (!workspace.status
+        ? "Workspace connection is not verified. Restore the API connection to continue."
+        : "") ||
+      (!workspace.status?.providerConfigured
+        ? "Configure the server AI provider before assessment or execution."
+        : "") ||
+      (!content.trim() ? "Describe your idea above to continue." : "") ||
+      (busy
+        ? "Wait for the current operation to finish."
+        : assessment.assessing
+          ? "Wait for the assessment to finish."
+          : "");
+  async function choose(structureId) {
+    await perform(async () => {
+      const selectedId = await save();
+      await api(`/projects/${selectedId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ selectedStructure: structureId }),
+      });
+      setChosenStructure(structureId);
+      onSelect(structureId);
+      setNotice(
+        "Ecosystem choice saved. Run it below to generate deliverables and an estimated roadmap.",
+      );
+      await workspace.refresh();
+    });
+  }
+  async function rename() {
+    await perform(async () => {
+      const result = await api(`/projects/${projectId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ name: name.trim() }),
+      });
+      setSavedName(result.name);
+      setNotice("Workflow renamed.");
+      await workspace.refresh();
+    });
+  }
   async function perform(task) {
     setBusy(true);
     setError("");
@@ -55,8 +100,11 @@ export function ContentWorkspace({
       const body = new FormData();
       body.append("file", file);
       const project = await api("/documents", { method: "POST", body });
+      setChosenStructure(project.selectedStructure || "");
+      if (project.selectedStructure) onSelect(project.selectedStructure);
       setContent(project.content);
       setName(project.name);
+      setSavedName(project.name);
       setProjectId(project._id);
       onProject(project._id);
       onRecommendations(project.recommendations || null);
@@ -73,6 +121,7 @@ export function ContentWorkspace({
           content,
         }),
       });
+      setSavedName(name.trim() || "Untitled workflow");
       selected = project._id;
       setProjectId(selected);
       onProject(selected);
@@ -84,6 +133,16 @@ export function ContentWorkspace({
     await perform(async () => {
       const selected = await save();
       await workspace.start(selected, all, weights);
+      setNotice(
+        "Execution queued. Live agent activity will appear below when a worker picks it up.",
+      );
+      setTimeout(
+        () =>
+          document
+            .getElementById("live-execution")
+            ?.scrollIntoView({ behavior: "smooth", block: "start" }),
+        0,
+      );
     });
   }
   return (
@@ -121,6 +180,7 @@ export function ContentWorkspace({
                     const selectedId = event.target.value;
                     perform(async () => {
                       if (!selectedId) {
+                        setChosenStructure("");
                         setProjectId("");
                         onProject("");
                         setContent("");
@@ -129,8 +189,12 @@ export function ContentWorkspace({
                       }
                       const project = await api(`/projects/${selectedId}`);
                       setProjectId(project._id);
+                      setChosenStructure(project.selectedStructure || "");
+                      if (project.selectedStructure)
+                        onSelect(project.selectedStructure);
                       setContent(project.content);
                       setName(project.name);
+                      setSavedName(project.name);
                       onProject(project._id);
                       onRecommendations(project.recommendations || null);
                     });
@@ -146,7 +210,7 @@ export function ContentWorkspace({
               </>
             )}
             <label className="text-label" htmlFor={`${id}-name`}>
-              Concept name <span className="optional-label">optional</span>
+              Workflow name <span className="optional-label">optional</span>
             </label>
             <input
               id={`${id}-name`}
@@ -155,11 +219,25 @@ export function ContentWorkspace({
               maxLength={120}
               onChange={(event) => {
                 setName(event.target.value);
-                setProjectId("");
-                onProject("");
+                setNotice("");
               }}
               placeholder="Give your idea a name"
             />
+            {projectId && (
+              <button
+                className="secondary-button"
+                disabled={
+                  busy ||
+                  assessment.assessing ||
+                  !name.trim() ||
+                  name.trim() === savedName
+                }
+                onClick={rename}
+              >
+                Save workflow name
+              </button>
+            )}
+            {notice && <p role="status">{notice}</p>}
             <label className="text-label" htmlFor={`${id}-idea`}>
               Or write your idea
             </label>
@@ -170,6 +248,8 @@ export function ContentWorkspace({
               maxLength={80000}
               onChange={(event) => {
                 setContent(event.target.value);
+                setNotice("");
+                setChosenStructure("");
                 setProjectId("");
                 onProject("");
               }}
@@ -183,6 +263,8 @@ Who is it for? What problem does it solve? Share any goals, resources, or constr
                 <button
                   disabled={busy}
                   onClick={() => {
+                    setNotice("");
+                    setChosenStructure("");
                     setContent("");
                     setName("");
                     setProjectId("");
@@ -223,13 +305,8 @@ Who is it for? What problem does it solve? Share any goals, resources, or constr
             <div className="assessment-status">
               <button
                 className="run-button assessment-button"
-                disabled={
-                  busy ||
-                  assessment.assessing ||
-                  !workspace.authenticated ||
-                  !workspace.status?.providerConfigured ||
-                  !content.trim()
-                }
+                disabled={Boolean(blockedReason)}
+                aria-describedby={`${id}-assessment-help`}
                 onClick={assessment.assess}
               >
                 <span>
@@ -241,27 +318,20 @@ Who is it for? What problem does it solve? Share any goals, resources, or constr
                 </span>
                 <span aria-hidden="true">↗</span>
               </button>
-              <p role="status" className="setup-note">
-                {assessment.assessing
-                  ? "Assessing your saved idea… You can keep editing; outdated results will be discarded."
-                  : !workspace.authenticated
-                    ? "Sign in to save your idea and get a personalized recommendation."
-                    : !workspace.status?.providerConfigured
-                      ? "Your idea is editable. AI assessment and comparisons become available when the server provider is configured."
-                      : "Automatically assesses after you pause typing for 1.5 seconds. Your idea is saved and sent to the AI provider; API usage applies."}
+              <p
+                id={`${id}-assessment-help`}
+                role="status"
+                className="setup-note"
+              >
+                {blockedReason ||
+                  (assessment.assessing
+                    ? "Assessing your saved idea… You can keep editing; outdated results will be discarded."
+                    : !workspace.authenticated
+                      ? "Sign in to save your idea and get a personalized recommendation."
+                      : !workspace.status?.providerConfigured
+                        ? "Your idea is editable. AI assessment and comparisons become available when the server provider is configured."
+                        : "Automatically assesses after you pause typing for 1.5 seconds. Your idea is saved and sent to the AI provider; API usage applies.")}
               </p>
-              {assessment.failure && (
-                <div role="alert" className="error">
-                  <strong>
-                    Assessment: {assessment.failure.code.replaceAll("_", " ")}
-                  </strong>
-                  <p>{assessment.failure.message}</p>
-                  <p>
-                    Your idea remains editable. Retry when the reported issue is
-                    resolved.
-                  </p>
-                </div>
-              )}
             </div>
             <details className="source-options">
               <summary>Save without assessing</summary>
@@ -358,6 +428,7 @@ Who is it for? What problem does it solve? Share any goals, resources, or constr
                 );
                 return false;
               }
+              setChosenStructure("");
               setContent(combined);
               setProjectId("");
               onProject("");
@@ -365,7 +436,22 @@ Who is it for? What problem does it solve? Share any goals, resources, or constr
           />
         )}
       </section>
-      {children}
+      <WorkflowRecommendations
+        result={assessmentResult}
+        assessing={assessment.assessing}
+        failure={assessment.failure}
+        blockedReason={blockedReason}
+        onRetry={assessment.assess}
+        selectionError={error}
+        selected={chosenStructure}
+        selectionDisabled={
+          busy ||
+          assessment.assessing ||
+          !workspace.authenticated ||
+          !workspace.status
+        }
+        onSelect={choose}
+      />
       <section
         className="panel execution-launch"
         id="idea-execution"
@@ -381,15 +467,14 @@ Who is it for? What problem does it solve? Share any goals, resources, or constr
           </p>
         </div>
         <div className="execution-buttons">
+          <p id={`${id}-execution-help`} className="setup-note" role="status">
+            {blockedReason ||
+              "Ready to queue live execution. A running worker is required to process it."}
+          </p>
           <button
             className="run-button"
-            disabled={
-              busy ||
-              assessment.assessing ||
-              !workspace.authenticated ||
-              !workspace.status?.providerConfigured ||
-              !content.trim()
-            }
+            disabled={Boolean(blockedReason)}
+            aria-describedby={`${id}-execution-help`}
             onClick={() =>
               run([
                 "flat",
@@ -405,7 +490,10 @@ Who is it for? What problem does it solve? Share any goals, resources, or constr
             {busy ? "Preparing…" : "Compare all 7 structures"}
             <span aria-hidden="true">↗</span>
           </button>
-          <details className="single-run-options">
+          <details
+            className="single-run-options"
+            open={Boolean(chosenStructure)}
+          >
             <summary>Or run one ecosystem</summary>
             <div className="routing">
               <span>Selected route</span>
@@ -413,13 +501,7 @@ Who is it for? What problem does it solve? Share any goals, resources, or constr
             </div>
             <button
               className="secondary-button"
-              disabled={
-                busy ||
-                assessment.assessing ||
-                !workspace.authenticated ||
-                !workspace.status?.providerConfigured ||
-                !content.trim()
-              }
+              disabled={Boolean(blockedReason)}
               onClick={() => run([model.id])}
             >
               Run through ecosystem

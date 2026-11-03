@@ -13,7 +13,7 @@ export function RunTimeline({ runs, refresh }) {
   }
   if (!runs.length)
     return (
-      <section className="panel empty-state">
+      <section className="panel empty-state" id="live-execution">
         <span className="eyebrow">EXECUTION TIMELINE</span>
         <h3>Your first run starts here</h3>
         <p>
@@ -23,7 +23,7 @@ export function RunTimeline({ runs, refresh }) {
       </section>
     );
   return (
-    <section className="panel run-panel">
+    <section className="panel run-panel" id="live-execution">
       <div className="panel-heading">
         <div>
           <span className="eyebrow">LIVE EXECUTION</span>
